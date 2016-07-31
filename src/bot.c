@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
 
 	if (argc != 5) {
 		printf("Usage: %s [server] [channel] [nick] [password]\n", argv[0]);
-		exit(1);
+		exit(4);
 	}
 
 	char *server, *channel, *nick, *password;
@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
 	password = argv[4];
 
 	int sockfd;
-	connect_to_irc(&sockfd, 6667, server);
+	connect_to_irc(&sockfd, IRC_PORT, server);
 
 	char buf[BUFFER_SIZE+1]; char out[BUFFER_SIZE+1];
 	int n;
@@ -36,7 +36,6 @@ int main(int argc, char** argv) {
 	get_on_channel(&sockfd, channel, nick, out, password);
 	
 	while( (n = read(sockfd, buf, BUFFER_SIZE)) ) {
-		if (n <= 0) continue;
 
 		buf[n] = 0;
 
@@ -86,8 +85,6 @@ int main(int argc, char** argv) {
 
 				sprintf(out, "\rPRIVMSG %s :%s%s\r\n", channel, search_url, escaped);
 				responsible_send(sockfd, out, strlen(out), 0);
-
-				printf("Got here\n");
 
 				curl_free(escaped);
 			}
