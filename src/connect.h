@@ -12,6 +12,6 @@
 #define IRC_PORT 6667
 #define BUFFER_SIZE 2048
 
-int connect_to_irc(int* sockfd, char* irc_channel, int port);
+int connect_to_irc(int* sockfd, int port, char* irc_server);
 int get_on_channel(int* sockfd, char* channel, char* nick, char* buf, char* password);
 int write_to_socket(int* sockfd, char* buf, char* fmt, ...);

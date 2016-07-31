@@ -1,6 +1,6 @@
 #include "./connect.h"
 
-int connect_to_irc(int* sockfd, char* irc_channel, int port) {
+int connect_to_irc(int* sockfd, int port, char* irc_server) {
 	struct sockaddr_in serv_addr;
 	struct hostent *server;
 
@@ -10,7 +10,7 @@ int connect_to_irc(int* sockfd, char* irc_channel, int port) {
 		exit(1);
 	}
 
-	server = gethostbyname("irc.freenode.net");
+	server = gethostbyname(irc_server);
 	if (server == NULL) {
 		perror("host not found");
 		close(*sockfd);
