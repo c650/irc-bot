@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
 	password = argv[4];
 
 	int sockfd;
-	connect_to_irc(&sockfd, server, 6667);
+	connect_to_irc(&sockfd, 6667, server);
 
 	char buf[BUFFER_SIZE+1]; char out[BUFFER_SIZE+1];
 	int n;
