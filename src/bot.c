@@ -38,11 +38,14 @@ int main(int argc, char** argv) {
 	while( (n = read(sockfd, buf, BUFFER_SIZE)) ) {
 
 		buf[n] = 0;
+		printf("%s\n", buf);
 
 		if (strncmp(buf, "PING", 4)) {
-			printf("We got PING'd\n");
+			//printf("We got PING'd\n");
 			
-			send(sockfd, out, strlen(out), 0);
+			strcpy(out, "PONG :pingis\r\n");
+
+			responsible_send(sockfd, out, strlen(out), 0);
 		}
 
 		if (strstr(buf, "@slap") != NULL) {
@@ -52,9 +55,7 @@ int main(int argc, char** argv) {
 			sprintf(out, "\rPRIVMSG %s :\001ACTION slapped the hell outta %s\001\r\n", channel, pos);
 
 			responsible_send(sockfd, out, strlen(out), 0);
-		}
-
-		if (strstr(buf, "@google ") != NULL) {
+		} else if (strstr(buf, "@google ") != NULL) {
 			char* google_url = "http://google.com/#q=";
 			char* pos = strstr(buf, "@google ") + 8;
 
@@ -71,9 +72,7 @@ int main(int argc, char** argv) {
 			responsible_send(sockfd, out, strlen(out), 0);
 
 			free(result);
-		}
-
-		if (strstr(buf, "@search ") != NULL) {
+		} else if (strstr(buf, "@search ") != NULL) {
 			char* search_url = "https://0x00sec.org/search?q=";
 			char* pos = strstr(buf, "@search ") + 8;
 			pos[strlen(pos)-2] = 0;
@@ -88,9 +87,34 @@ int main(int argc, char** argv) {
 
 				curl_free(escaped);
 			}
+		} else if (strstr(buf, "@iplookup ") != NULL) {
+			char* pos = strstr(buf, "@iplookup ") + 10;
+			pos = strtok(pos, " /\r\n");
+			printf("pos = %s.\n", pos);
+
+			ip_lookup(pos, sockfd, out, channel);
+
+		} else if (strstr(strtok(buf+1, ":"), "JOIN ") != NULL) {
+			char* pos = strtok(buf, "!") + 1;
+
+			if (strcmp(pos, nick) != 0) {
+				sprintf(out, "\rPRIVMSG %s :Hi there, %s!\r\n", channel, pos);
+
+				char* pos1;
+				if ((pos1 = parse_for_host(buf, pos)) != NULL) {
+					printf("pos = %s\n", pos1);
+					ip_lookup(pos1, sockfd, out, channel);
+					
+					free(pos1);
+				}
+			}
+			else
+				sprintf(out, "\rPRIVMSG %s :Hi everybody!\r\n", channel);
+
+
+			responsible_send(sockfd, out, strlen(out), 0);
 		}
 
-		printf("%s\n", buf);
 		memset(buf, 0, BUFFER_SIZE);
 	}
 
