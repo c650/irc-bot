@@ -42,9 +42,8 @@ void ip_lookup(char* pos, int sockfd, char* out, char* channel) {
 	FILE* fp = popen(sbuf, "r");
 
 	while (fgets(sbuf, 256, fp) != NULL) {
-		//if (sbuf[0] == 0x00) continue;
+		if (sbuf[0] == 0x00) continue;
 
-		//pos = strstr(sbuf, "Location");
 		sprintf(out, "\rPRIVMSG %s :%s", channel, sbuf);
 		responsible_send(sockfd, out, strlen(out), 0);
 	}

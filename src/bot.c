@@ -40,15 +40,13 @@ int main(int argc, char** argv) {
 		buf[n] = 0;
 		printf("%s\n", buf);
 
-		if (strncmp(buf, "PING", 4)) {
-			//printf("We got PING'd\n");
+		if (!strncmp(buf, "PING", 4)) {
 			
-			strcpy(out, "PONG :pingis\r\n");
+			buf[1] = 'O';
+			responsible_send(sockfd, buf, strlen(buf), 0);
+			printf("Pong sent!\n");
 
-			responsible_send(sockfd, out, strlen(out), 0);
-		}
-
-		if (strstr(buf, "@slap") != NULL) {
+		} else if (strstr(buf, "@slap") != NULL) {
 			out[0] = 0;
 
 			char* pos = strstr(buf, "@slap ") + 6;

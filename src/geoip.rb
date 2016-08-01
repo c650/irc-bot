@@ -11,16 +11,19 @@ puts "Looking up #{ARGV[0]}"
 agent = Mechanize.new
 agent.user_agent = "curl/7.43.0"
 
-url = "http://freegeoip.net/json/#{ARGV[0].gsub(" ","")}"
-uri = URI(url)
+begin
+	url = "http://freegeoip.net/json/#{ARGV[0].gsub(" ","")}"
+	uri = URI(url)
 
-data = `curl #{uri}`
+	data = `curl #{uri}`
 
-json = JSON.parse(data)
-weather = agent.get("http://wttr.in/#{json["city"]}").body.split("\n")
+	json = JSON.parse(data)
+	weather = agent.get("http://wttr.in/#{json["city"]}").body.split("\n")
 
-puts "Location: #{json["city"]}, #{json["region_code"]}, #{json["country_name"]}"
+	puts "Location: #{json["city"]}, #{json["region_code"]}, #{json["country_name"]}"
 
-puts "Weather right now: "
-puts weather[1..6]
-puts ""
+	puts "Weather right now: "
+	puts weather[1..6]
+rescue
+	puts "Failed to look up #{ARGV[0]}."
+end
