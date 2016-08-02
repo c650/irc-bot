@@ -18,12 +18,16 @@ begin
 	data = `curl #{uri}`
 
 	json = JSON.parse(data)
-	weather = agent.get("http://wttr.in/#{json["city"]}").body.split("\n")
+	weather = agent.get("http://wttr.in/#{json["city"] ? json["city"] : json["country_name"]}").body.split("\n")
 
 	puts "Location: #{json["city"]}, #{json["region_code"]}, #{json["country_name"]}"
 
-	puts "Weather right now: "
-	puts weather[1..6]
+	if (json["city"] != "")
+		puts "Weather right now: "
+		puts weather[1..6]
+	else 
+		puts "Weather unavailable."
+	end
 rescue
 	puts "Failed to look up #{ARGV[0]}."
 end

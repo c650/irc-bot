@@ -1,14 +1,24 @@
 void format_query(char* query_str, char* result) {
 
-	char *token = strtok(query_str, ",.:;?!-_ \n\r");
+	char* escaped;
+	CURL *curl = curl_easy_init();
+
+	char *token = strtok(query_str, ",;?!-_ \n\r");
 	while (token != NULL) {
-		strcpy(result + strlen(result), token);
+
+		escaped = curl_easy_escape(curl, token, strlen(token));
+
+		strcpy(result + strlen(result), escaped);
 		strcpy(result + strlen(result), "+");
 
 		token = strtok(NULL, ",.:;?!-_ ");
+		
+		curl_free(escaped);
 	}
 
 	result[strlen(result) - 1] = '\0';
+
+	curl_easy_cleanup(curl);
 }
 
 char* parse_for_host(IRCPacket* packet) {

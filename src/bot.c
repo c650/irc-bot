@@ -36,6 +36,7 @@ int main(int argc, char** argv) {
 	session->port = IRC_PORT;
 
 	const char* admin = "oaktree";
+	char* echoing = NULL;
 
 	connect_to_irc(session);
 	log_on(session);
@@ -50,7 +51,7 @@ int main(int argc, char** argv) {
 
 	IRCPacket *packet = malloc(sizeof(IRCPacket));
 	
-	int n;	
+	int n;
 	while( (n = read(session->sockfd, buf, BUFFER_SIZE)) ) {
 
 		buf[n] = 0;
@@ -80,8 +81,8 @@ int main(int argc, char** argv) {
 					char* google_url = "http://google.com/#q=";
 					char* pos = strstr(packet->content, "@google ") + 8;
 
-					char* result = malloc(strlen(pos));
-					memset(result, 0, strlen(pos));
+					char* result = malloc(strlen(pos) * 3);
+					memset(result, 0, strlen(pos) * 3);
 
 					if (result == NULL)
 						continue;
@@ -90,7 +91,7 @@ int main(int argc, char** argv) {
 
 					write_to_socket(session, out, "\rPRIVMSG %s :%s%s\r\n", packet->channel, google_url, result);
 
-					//free(result); /* was causing error */
+					free(result);
 
 				} else if (strstr(packet->content, "@search ") != NULL) {
 					
@@ -108,6 +109,7 @@ int main(int argc, char** argv) {
 					} else {
 						continue;
 					}
+
 				} else if (strstr(packet->content, "@iplookup ") != NULL) {
 					
 					char* pos = strstr(packet->content, "@iplookup ") + 10;
@@ -117,13 +119,47 @@ int main(int argc, char** argv) {
 					ip_lookup(pos, out, session);
 
 				} else if (strstr(packet->content, "@help") != NULL) {
-					write_to_socket(session, out, "\rPRIVMSG %s :%s: slap, google, search, iplookup, help\r\n", packet->channel, packet->sender);
+
+					write_to_socket(session, out, "\rPRIVMSG %s :%s: slap, google, search, iplookup, help, echo [0,1]\r\n", packet->channel, packet->sender);
+				
 				} else if (strstr(packet->content, "@quit") && !strcmp(packet->sender, admin)) {
+				
 					char* message = strstr(packet->content, "@quit") + 5;
 					if (*message != '\0') message++;
 
 					write_to_socket(session, out, "\rQUIT :Quit: %s\r\n", message);
 					break;
+
+				} else if (strstr(packet->content, "@echo ") != NULL) {
+
+					char* command = strstr(packet->content, "@echo ") + 6;
+					if (*command == '1') {
+
+						if (echoing != NULL) {
+							free(echoing);
+						}
+
+						echoing = malloc( strlen(packet->sender) + 1 );
+						strcpy(echoing, packet->sender);
+
+						write_to_socket(session, out, "\rPRIVMSG %s :Now echoing: %s\r\n", packet->channel, echoing);					
+
+						continue;
+
+					} else {
+
+						write_to_socket(session, out, "\rPRIVMSG %s :No longer echoing: %s\r\n", packet->channel, echoing);
+
+						free(echoing);
+						echoing = NULL;
+					}
+
+				}
+
+				if (echoing != NULL && !strcmp(packet->sender, echoing)) {
+
+					write_to_socket(session, out, "\rPRIVMSG %s :%s\r\n", packet->channel, packet->content);					
+
 				}
 			}
 
@@ -150,6 +186,12 @@ int main(int argc, char** argv) {
 
 	printf("press enter to exit");
 	scanf("%c",buf);
+
+	if (echoing != NULL)
+		free(echoing);
+
+	free(buf);
+	free(out);
 
 	free(packet);
 	close(session->sockfd);
