@@ -10,9 +10,13 @@
 #include <stdarg.h>
 #include <curl/curl.h>
 
-#include "./connect.h"
+#define BUFFER_SIZE 2048
+#define IRC_PORT 6667
+
+#include "./irc-datatypes.h"
 #include "./connect.c"
 #include "./helper-functions.c"
+#include "./parser.c"
 
 int main(int argc, char** argv) {
 
@@ -21,21 +25,33 @@ int main(int argc, char** argv) {
 		exit(4);
 	}
 
-	char *server, *channel, *nick, *password;
-	server = argv[1];
-	channel = argv[2];
-	nick = argv[3];
-	password = argv[4];
+	/*
+		Streamlining IRC Data into a session.
+	*/
+	IRCSession *session = malloc(sizeof(IRCSession));
+	session->server = argv[1];
+	session->channel = argv[2];
+	session->nick = argv[3];
+	session->pass = argv[4];
+	session->port = IRC_PORT;
 
-	int sockfd;
-	connect_to_irc(&sockfd, IRC_PORT, server);
+	const char* admin = "oaktree";
 
-	char buf[BUFFER_SIZE+1]; char out[BUFFER_SIZE+1];
-	int n;
+	connect_to_irc(session);
+	log_on(session);
 
-	get_on_channel(&sockfd, channel, nick, out, password);
+	sleep(15);
 	
-	while( (n = read(sockfd, buf, BUFFER_SIZE)) ) {
+	join_channel(session);
+
+	char *buf, *out;
+	buf = malloc(sizeof(char) * BUFFER_SIZE+1);
+	out = malloc(sizeof(char) * BUFFER_SIZE+1);
+
+	IRCPacket *packet = malloc(sizeof(IRCPacket));
+	
+	int n;	
+	while( (n = read(session->sockfd, buf, BUFFER_SIZE)) ) {
 
 		buf[n] = 0;
 		printf("%s\n", buf);
@@ -43,74 +59,90 @@ int main(int argc, char** argv) {
 		if (!strncmp(buf, "PING", 4)) {
 			
 			buf[1] = 'O';
-			responsible_send(sockfd, buf, strlen(buf), 0);
+			write_to_socket(session, out, buf);
 			printf("Pong sent!\n");
 
-		} else if (strstr(buf, "@slap") != NULL) {
-			out[0] = 0;
+		} else {
 
-			char* pos = strstr(buf, "@slap ") + 6;
-			sprintf(out, "\rPRIVMSG %s :\001ACTION slapped the hell outta %s\001\r\n", channel, pos);
-
-			responsible_send(sockfd, out, strlen(out), 0);
-		} else if (strstr(buf, "@google ") != NULL) {
-			char* google_url = "http://google.com/#q=";
-			char* pos = strstr(buf, "@google ") + 8;
-
-			char* result = malloc(strlen(pos));
-			memset(result, 0, strlen(pos));
-
-			if (result == NULL)
+			if (parse_irc_packet(buf, packet) <= 0) {
 				continue;
-
-			format_query(pos, result);
-
-			sprintf(out, "\rPRIVMSG %s :%s%s\r\n", channel, google_url, result);
-
-			responsible_send(sockfd, out, strlen(out), 0);
-
-			free(result);
-		} else if (strstr(buf, "@search ") != NULL) {
-			char* search_url = "https://0x00sec.org/search?q=";
-			char* pos = strstr(buf, "@search ") + 8;
-			pos[strlen(pos)-2] = 0;
-
-			CURL *curl = curl_easy_init();
-			if (curl) {
-				char* escaped = curl_easy_escape(curl, pos, strlen(pos));
-				curl_easy_cleanup(curl);
-
-				sprintf(out, "\rPRIVMSG %s :%s%s\r\n", channel, search_url, escaped);
-				responsible_send(sockfd, out, strlen(out), 0);
-
-				curl_free(escaped);
 			}
-		} else if (strstr(buf, "@iplookup ") != NULL) {
-			char* pos = strstr(buf, "@iplookup ") + 10;
-			pos = strtok(pos, " /\r\n");
-			printf("pos = %s.\n", pos);
 
-			ip_lookup(pos, sockfd, out, channel);
+			if (packet->content != NULL && !strcmp(packet->type, "PRIVMSG")) {
+				if (strstr(packet->content, "@slap ") != NULL) {
 
-		} else if (strstr(strtok(buf+1, ":"), "JOIN ") != NULL) {
-			char* pos = strtok(buf, "!") + 1;
+					char* pos = strstr(packet->content, "@slap ") + 6;
 
-			if (strcmp(pos, nick) != 0) {
-				sprintf(out, "\rPRIVMSG %s :Hi there, %s!\r\n", channel, pos);
-
-				char* pos1;
-				if ((pos1 = parse_for_host(buf, pos)) != NULL) {
-					printf("pos = %s\n", pos1);
-					ip_lookup(pos1, sockfd, out, channel);
+					write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION slapped the hell outta %s\001\r\n", packet->channel, pos);
+				
+				} else if (strstr(packet->content, "@google ") != NULL) {
 					
-					free(pos1);
+					char* google_url = "http://google.com/#q=";
+					char* pos = strstr(packet->content, "@google ") + 8;
+
+					char* result = malloc(strlen(pos));
+					memset(result, 0, strlen(pos));
+
+					if (result == NULL)
+						continue;
+
+					format_query(pos, result);
+
+					write_to_socket(session, out, "\rPRIVMSG %s :%s%s\r\n", packet->channel, google_url, result);
+
+					//free(result); /* was causing error */
+
+				} else if (strstr(packet->content, "@search ") != NULL) {
+					
+					char* search_url = "https://0x00sec.org/search?q=";
+					char* pos = strstr(packet->content, "@search ") + 8;
+
+					CURL *curl = curl_easy_init();
+					if (curl) {
+						char* escaped = curl_easy_escape(curl, pos, strlen(pos));
+						curl_easy_cleanup(curl);
+
+						write_to_socket(session, out, "\rPRIVMSG %s :%s%s\r\n", packet->channel, search_url, escaped);
+
+						curl_free(escaped);
+					} else {
+						continue;
+					}
+				} else if (strstr(packet->content, "@iplookup ") != NULL) {
+					
+					char* pos = strstr(packet->content, "@iplookup ") + 10;
+					pos = strtok(pos, " /");
+					printf("[*] host = %s.\n", pos);
+
+					ip_lookup(pos, out, session);
+
+				} else if (strstr(packet->content, "@help") != NULL) {
+					write_to_socket(session, out, "\rPRIVMSG %s :%s: slap, google, search, iplookup, help\r\n", packet->channel, packet->sender);
+				} else if (strstr(packet->content, "@quit") && !strcmp(packet->sender, admin)) {
+					char* message = strstr(packet->content, "@quit") + 5;
+					if (*message != '\0') message++;
+
+					write_to_socket(session, out, "\rQUIT :Quit: %s\r\n", message);
+					break;
 				}
 			}
-			else
-				sprintf(out, "\rPRIVMSG %s :Hi everybody!\r\n", channel);
 
+			if (!strcmp(packet->type, "JOIN")) {
 
-			responsible_send(sockfd, out, strlen(out), 0);
+				if (strcmp(packet->sender, session->nick) != 0) {
+
+					write_to_socket(session, out, "\rPRIVMSG %s :Hi there, %s!\r\n", packet->channel, packet->sender);
+
+					char* host;
+					if ((host = parse_for_host(packet)) != NULL) {
+						printf("[*] host = %s\n", host);
+						ip_lookup(host, out, session);
+					}
+
+				} else {
+					write_to_socket(session, out, "\rPRIVMSG %s :Hi everybody!\r\n", packet->channel);
+				}
+			}
 		}
 
 		memset(buf, 0, BUFFER_SIZE);
@@ -119,7 +151,9 @@ int main(int argc, char** argv) {
 	printf("press enter to exit");
 	scanf("%c",buf);
 
-	close(sockfd);
+	free(packet);
+	close(session->sockfd);
+	free(session);
 
 	return 0;
 }

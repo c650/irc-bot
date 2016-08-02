@@ -1,6 +1,6 @@
 void format_query(char* query_str, char* result) {
 
-	char *token = strtok(query_str, ",.:;?!-_ ");
+	char *token = strtok(query_str, ",.:;?!-_ \n\r");
 	while (token != NULL) {
 		strcpy(result + strlen(result), token);
 		strcpy(result + strlen(result), "+");
@@ -8,44 +8,31 @@ void format_query(char* query_str, char* result) {
 		token = strtok(NULL, ",.:;?!-_ ");
 	}
 
-	result[strlen(result) - 1] = 0x00;
+	result[strlen(result) - 1] = '\0';
 }
 
-void responsible_send(int sockfd, char* buf, size_t len, int special_options) {
-	send(sockfd, buf, len, special_options);
+char* parse_for_host(IRCPacket* packet) {
 
-	printf("Sending\n\t%s\n", buf);
-
-	memset(buf, 0, len * sizeof(char));
-}
-char* parse_for_host(char* buf, char* pos) {
-
-	pos = strtok(NULL, "@");
-	pos = strtok(NULL, " ");	
-	
-	char* pos1 = malloc(strlen(pos)+1);
-	strcpy(pos1, pos);
+	char* pos = packet->hostname;
 
 	if (strstr(pos, "/") != NULL && strstr(pos, ".") == NULL) {
-		free(pos1);
 		return NULL;
 	} else {
-		return pos1;
+		return pos;
 	}
 }
 
-void ip_lookup(char* pos, int sockfd, char* out, char* channel) {
+void ip_lookup(char* host, char* out, IRCSession* session) {
 	char sbuf[256];
-	sprintf(sbuf, "./geoip.rb %s", pos);
+	sprintf(sbuf, "./geoip.rb %s", host);
 
-	printf("\rRunning %s\n", sbuf);
+	printf("Running %s\n", sbuf);
 	FILE* fp = popen(sbuf, "r");
 
 	while (fgets(sbuf, 256, fp) != NULL) {
 		if (sbuf[0] == 0x00) continue;
 
-		sprintf(out, "\rPRIVMSG %s :%s", channel, sbuf);
-		responsible_send(sockfd, out, strlen(out), 0);
+		write_to_socket(session, out, "\rPRIVMSG %s :%s", session->channel, sbuf);
 	}
 
 	pclose(fp);

@@ -1,19 +1,28 @@
-#include "./connect.h"
+/*
+	Prototypes
+*/
+int connect_to_irc(IRCSession* session);
+void log_on(IRCSession* session);
+void join_channel(IRCSession* session);
+void write_to_socket(IRCSession* session, char* buf, char* fmt, ...);
 
-int connect_to_irc(int* sockfd, int port, char* irc_server) {
+/*
+	Implementations
+*/
+int connect_to_irc(IRCSession* session) {
 	struct sockaddr_in serv_addr;
 	struct hostent *server;
 
-	*sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (*sockfd < 0) {
+	session->sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (session->sockfd < 0) {
 		perror("socket could not be opened");
 		exit(1);
 	}
 
-	server = gethostbyname(irc_server);
+	server = gethostbyname(session->server);
 	if (server == NULL) {
 		perror("host not found");
-		close(*sockfd);
+		close(session->sockfd);
 		exit(2);
 	}
 
@@ -26,28 +35,42 @@ int connect_to_irc(int* sockfd, int port, char* irc_server) {
 		);
 
 	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(IRC_PORT);
+	serv_addr.sin_port = htons(session->port);
 
-	if ( connect(*sockfd, (struct sockaddr*) &serv_addr, sizeof(serv_addr)) < 0 ) {
+	if ( connect(session->sockfd, (struct sockaddr*) &serv_addr, sizeof(serv_addr)) < 0 ) {
 		perror("error connecting...");
-		close(*sockfd);
+		close(session->sockfd);
 		exit(3);
 	}
 
-	return *sockfd;
+	return session->sockfd;
 }
-int get_on_channel(int* sockfd, char* channel, char* nick, char* buf, char* password) {
 
-	write_to_socket(sockfd, buf, "\rUSER %s 0 * :%s\r\n", nick, nick);
-	write_to_socket(sockfd, buf, "\rNICK %s\r\n", nick);
-	write_to_socket(sockfd, buf, "\rPRIVMSG NickServ :identify %s\r\n", password);
-	
-	write_to_socket(sockfd, buf, "\rJOIN %s\r\n", channel);
-	
+void log_on(IRCSession* session) {
 
-	return 0;
+	char buf[BUFFER_SIZE+1];
+
+	write_to_socket(session, buf, "\rUSER %s 0 * :%s\r\n", session->nick, session->nick);
+	write_to_socket(session, buf, "\rNICK %s\r\n", session->nick);
+	write_to_socket(session, buf, "\rPRIVMSG NickServ :identify %s\r\n", session->pass);
+
+	// int n;	
+	// while( (n = read(session->sockfd, buf, BUFFER_SIZE)) != 0) {
+	// 	if (n <= 1) break;
+	// 	printf("%s", buf);
+	// }
+
 }
-int write_to_socket(int* sockfd, char* buf, char* fmt, ...) {
+
+void join_channel(IRCSession* session) {
+
+	char buf[BUFFER_SIZE+1];
+
+	write_to_socket(session, buf, "\rJOIN %s\r\n", session->channel);
+}
+
+void write_to_socket(IRCSession* session, char* buf, char* fmt, ...) {
+	
 	memset(buf, 0, BUFFER_SIZE);
 
 	va_list ap;
@@ -57,7 +80,7 @@ int write_to_socket(int* sockfd, char* buf, char* fmt, ...) {
 
 	va_end(ap);
 
-	write(*sockfd, buf, strlen(buf));
+	write(session->sockfd, buf, strlen(buf));
 
-	return 0;
+	printf("[*] Sent:    %s", buf+1);
 }
