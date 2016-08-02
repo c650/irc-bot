@@ -1,3 +1,19 @@
+void write_to_socket(IRCSession* session, char* buf, char* fmt, ...) {
+	
+	memset(buf, 0, BUFFER_SIZE);
+
+	va_list ap;
+	va_start(ap,fmt);
+
+	vsnprintf(buf, BUFFER_SIZE, fmt, ap);
+
+	va_end(ap);
+
+	write(session->sockfd, buf, strlen(buf));
+
+	printf("[*] Sent:    %s", buf+1);
+}
+
 void format_query(char* query_str, char* result) {
 
 	char* escaped;
@@ -36,7 +52,7 @@ void ip_lookup(char* host, char* out, IRCSession* session) {
 	char sbuf[256];
 	sprintf(sbuf, "./geoip.rb %s", host);
 
-	printf("Running %s\n", sbuf);
+	printf("[*] Running %s\n", sbuf);
 	FILE* fp = popen(sbuf, "r");
 
 	while (fgets(sbuf, 256, fp) != NULL) {

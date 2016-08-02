@@ -54,12 +54,6 @@ void log_on(IRCSession* session) {
 	write_to_socket(session, buf, "\rNICK %s\r\n", session->nick);
 	write_to_socket(session, buf, "\rPRIVMSG NickServ :identify %s\r\n", session->pass);
 
-	// int n;	
-	// while( (n = read(session->sockfd, buf, BUFFER_SIZE)) != 0) {
-	// 	if (n <= 1) break;
-	// 	printf("%s", buf);
-	// }
-
 }
 
 void join_channel(IRCSession* session) {
@@ -67,20 +61,4 @@ void join_channel(IRCSession* session) {
 	char buf[BUFFER_SIZE+1];
 
 	write_to_socket(session, buf, "\rJOIN %s\r\n", session->channel);
-}
-
-void write_to_socket(IRCSession* session, char* buf, char* fmt, ...) {
-	
-	memset(buf, 0, BUFFER_SIZE);
-
-	va_list ap;
-	va_start(ap,fmt);
-
-	vsnprintf(buf, BUFFER_SIZE, fmt, ap);
-
-	va_end(ap);
-
-	write(session->sockfd, buf, strlen(buf));
-
-	printf("[*] Sent:    %s", buf+1);
 }

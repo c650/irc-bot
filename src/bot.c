@@ -14,9 +14,10 @@
 #define IRC_PORT 6667
 
 #include "./irc-datatypes.h"
-#include "./connect.c"
 #include "./helper-functions.c"
+#include "./connect.c"
 #include "./parser.c"
+#include "./privmsg-funcs.c"
 
 int main(int argc, char** argv) {
 
@@ -37,164 +38,164 @@ int main(int argc, char** argv) {
 
 	const char* admin = "oaktree";
 	char* echoing = NULL;
+	int restart = 1;
 
-	connect_to_irc(session);
-	log_on(session);
+	while(restart) {
+		
+		restart = 0;
 
-	sleep(15);
-	
-	join_channel(session);
+		time_t t;
+		srand((unsigned) time(&t));
 
-	char *buf, *out;
-	buf = malloc(sizeof(char) * BUFFER_SIZE+1);
-	out = malloc(sizeof(char) * BUFFER_SIZE+1);
+		connect_to_irc(session);
+		log_on(session);
 
-	IRCPacket *packet = malloc(sizeof(IRCPacket));
-	
-	int n;
-	while( (n = read(session->sockfd, buf, BUFFER_SIZE)) ) {
+		sleep(15);
+		
+		join_channel(session);
 
-		buf[n] = 0;
-		printf("%s\n", buf);
+		char *buf, *out;
+		buf = malloc(sizeof(char) * BUFFER_SIZE+1);
+		out = malloc(sizeof(char) * BUFFER_SIZE+1);
 
-		if (!strncmp(buf, "PING", 4)) {
-			
-			buf[1] = 'O';
-			write_to_socket(session, out, buf);
-			printf("Pong sent!\n");
+		IRCPacket *packet = malloc(sizeof(IRCPacket));
+		
+		int n;
+		while( (n = read(session->sockfd, buf, BUFFER_SIZE)) && !restart) {
 
-		} else {
+			buf[n] = 0;
+			printf("%s\n", buf);
 
-			if (parse_irc_packet(buf, packet) <= 0) {
-				continue;
-			}
-
-			if (packet->content != NULL && !strcmp(packet->type, "PRIVMSG")) {
-				if (strstr(packet->content, "@slap ") != NULL) {
-
-					char* pos = strstr(packet->content, "@slap ") + 6;
-
-					write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION slapped the hell outta %s\001\r\n", packet->channel, pos);
+			if (!strncmp(buf, "PING", 4)) {
 				
-				} else if (strstr(packet->content, "@google ") != NULL) {
+				buf[1] = 'O';
+				write_to_socket(session, out, buf);
+				printf("[*] Pong sent!\n");
+
+			} else {
+
+				if (parse_irc_packet(buf, packet) <= 0) {
+					continue;
+				}
+
+				if (packet->content != NULL && !strcmp(packet->type, "PRIVMSG")) {
 					
-					char* google_url = "http://google.com/#q=";
-					char* pos = strstr(packet->content, "@google ") + 8;
+					if ( strstr(packet->content, "@slap ") ) {
 
-					char* result = malloc(strlen(pos) * 3);
-					memset(result, 0, strlen(pos) * 3);
-
-					if (result == NULL)
-						continue;
-
-					format_query(pos, result);
-
-					write_to_socket(session, out, "\rPRIVMSG %s :%s%s\r\n", packet->channel, google_url, result);
-
-					free(result);
-
-				} else if (strstr(packet->content, "@search ") != NULL) {
+						slap(session, packet, out, admin);
 					
-					char* search_url = "https://0x00sec.org/search?q=";
-					char* pos = strstr(packet->content, "@search ") + 8;
+					} else if ( strstr(packet->content, "@google ") ) {
+						
+						google(session, packet, out);
 
-					CURL *curl = curl_easy_init();
-					if (curl) {
-						char* escaped = curl_easy_escape(curl, pos, strlen(pos));
-						curl_easy_cleanup(curl);
+					} else if ( strstr(packet->content, "@search ") ) {
+						
+						search(session, packet, out);
 
-						write_to_socket(session, out, "\rPRIVMSG %s :%s%s\r\n", packet->channel, search_url, escaped);
+					} else if ( strstr(packet->content, "@urban ") ) {
 
-						curl_free(escaped);
-					} else {
-						continue;
-					}
+						urban(session, packet, out);
 
-				} else if (strstr(packet->content, "@iplookup ") != NULL) {
+					} else if ( strstr(packet->content, "@topic ") ) {
+
+						write_to_socket(session, out, "\rPRIVMSG %s :https://0x00sec.org/t/%d\r\n", packet->channel, atoi(strstr(packet->content, "@topic ") + 7));
+
+					} else if ( strstr(packet->content, "@iplookup ") ) {
+						
+						char* pos = strstr(packet->content, "@iplookup ") + 10;
+						pos = strtok(pos, " /;");
+						printf("[*] host = %s.\n", pos);
+
+						ip_lookup(pos, out, session);
+
+					} else if ( strstr(packet->content, "@help") ) {
+
+						write_to_socket(session, out, "\rPRIVMSG %s :%s: slap, google, search, urban, topic, iplookup, help, echo [0,1], repeat\r\n", packet->channel, packet->sender);
 					
-					char* pos = strstr(packet->content, "@iplookup ") + 10;
-					pos = strtok(pos, " /");
-					printf("[*] host = %s.\n", pos);
+					} else if (strstr(packet->content, "@quit") && !strcmp(packet->sender, admin)) {
+					
+						char* message = strstr(packet->content, "@quit") + 5;
+						if (*message != '\0') message++;
 
-					ip_lookup(pos, out, session);
+						write_to_socket(session, out, "\rQUIT :Quit: %s\r\n", message);
+						break;
 
-				} else if (strstr(packet->content, "@help") != NULL) {
+					} else if (strstr(packet->content, "@restart") && !strcmp(packet->sender, admin)) {
 
-					write_to_socket(session, out, "\rPRIVMSG %s :%s: slap, google, search, iplookup, help, echo [0,1]\r\n", packet->channel, packet->sender);
-				
-				} else if (strstr(packet->content, "@quit") && !strcmp(packet->sender, admin)) {
-				
-					char* message = strstr(packet->content, "@quit") + 5;
-					if (*message != '\0') message++;
+						write_to_socket(session, out, "\rPRIVMSG %s :Restarting...\r\n", packet->channel);
+						write_to_socket(session, out, "\rQUIT :Quit: Restarting\r\n");
 
-					write_to_socket(session, out, "\rQUIT :Quit: %s\r\n", message);
-					break;
+						restart = 1;
+						break;				
 
-				} else if (strstr(packet->content, "@echo ") != NULL) {
+					} else if ( strstr(packet->content, "@echo ") ) {
 
-					char* command = strstr(packet->content, "@echo ") + 6;
-					if (*command == '1') {
+						echo_config(session, packet, out, &echoing);
+						printf("[*] echoing = %s\n", echoing);
 
-						if (echoing != NULL) {
-							free(echoing);
+					} else if ( strstr(packet->content, "@kick ") ) {
+
+						if (!strcmp(packet->sender, admin))
+							kick_user(session, packet, out);
+						else
+							write_to_socket(session, out, "\rPRIVMSG %s :Silly %s! Only %s can do that!\r\n", packet->channel, packet->sender, admin);
+
+					} else if ( strstr(packet->content, "@repeat ") ) {
+
+						/* would NOT want it to repeat itself */
+						if (strcmp(packet->sender, session->nick)) {
+							write_to_socket(session, out, "\rPRIVMSG %s :\"\033[0;31m%s\033[0;39m\" -- %s\r\n", packet->channel, strstr(packet->content, "@repeat ") + 8, packet->sender);
 						}
 
-						echoing = malloc( strlen(packet->sender) + 1 );
-						strcpy(echoing, packet->sender);
+					}
 
-						write_to_socket(session, out, "\rPRIVMSG %s :Now echoing: %s\r\n", packet->channel, echoing);					
+					if (echoing != NULL && !strcmp(packet->sender, echoing)) {
 
-						continue;
+						write_to_socket(session, out, "\rPRIVMSG %s :%s\r\n", packet->channel, packet->content);					
+
+					}
+				}
+
+				if (!strcmp(packet->type, "JOIN")) {
+
+					if (strcmp(packet->sender, session->nick) != 0) {
+
+						write_to_socket(session, out, "\rPRIVMSG %s :Hi there, %s!\r\n", packet->channel, packet->sender);
+
+						char* host;
+						if ((host = parse_for_host(packet)) != NULL) {
+							printf("[*] host = %s\n", host);
+							ip_lookup(host, out, session);
+						}
 
 					} else {
-
-						write_to_socket(session, out, "\rPRIVMSG %s :No longer echoing: %s\r\n", packet->channel, echoing);
-
-						free(echoing);
-						echoing = NULL;
+						write_to_socket(session, out, "\rPRIVMSG %s :Hi everybody!\r\n", packet->channel);
 					}
-
-				}
-
-				if (echoing != NULL && !strcmp(packet->sender, echoing)) {
-
-					write_to_socket(session, out, "\rPRIVMSG %s :%s\r\n", packet->channel, packet->content);					
-
 				}
 			}
 
-			if (!strcmp(packet->type, "JOIN")) {
-
-				if (strcmp(packet->sender, session->nick) != 0) {
-
-					write_to_socket(session, out, "\rPRIVMSG %s :Hi there, %s!\r\n", packet->channel, packet->sender);
-
-					char* host;
-					if ((host = parse_for_host(packet)) != NULL) {
-						printf("[*] host = %s\n", host);
-						ip_lookup(host, out, session);
-					}
-
-				} else {
-					write_to_socket(session, out, "\rPRIVMSG %s :Hi everybody!\r\n", packet->channel);
-				}
-			}
+			memset(buf, 0, BUFFER_SIZE);
 		}
 
-		memset(buf, 0, BUFFER_SIZE);
+		if (echoing != NULL)
+			free(echoing);
+
+		free(buf);
+		free(out);
+
+		free(packet);
+		close(session->sockfd);
+
+		if (restart) {
+			printf("[*] Restarting...\n\r");
+			for (int i = 0; i < 4; i++) {
+				printf(" ### ");
+				sleep(0.5);
+			}
+			printf("\n");
+		}
 	}
-
-	printf("press enter to exit");
-	scanf("%c",buf);
-
-	if (echoing != NULL)
-		free(echoing);
-
-	free(buf);
-	free(out);
-
-	free(packet);
-	close(session->sockfd);
+	
 	free(session);
 
 	return 0;
