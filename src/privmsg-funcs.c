@@ -8,9 +8,8 @@ void slap(IRCSession* session, IRCPacket* packet, char* out, const char* admin) 
 
 	char* pos = strstr(packet->content, "@slap ") + 6;
 
-	write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION slapped the hell outta %s\001\r\n", packet->channel, pos);					
-
-	if (rand() % 10 < 1) {
+	int prob = rand() % 10;
+	if (prob < 1) {
 		
 		char *tmp = strchr(pos, ' ');
 		
@@ -20,11 +19,17 @@ void slap(IRCSession* session, IRCPacket* packet, char* out, const char* admin) 
 			was_null = 0;
 		}
 		
+		write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION slapped %s so hard he got kicked from the channel!\001\r\n", packet->channel, pos);					
+
+		sleep(2);
+
 		if (strcmp(admin, pos))
 			write_to_socket(session, out, "\rKICK %s %s\r\n", packet->channel, pos);
 
 		if (!was_null)
 			*tmp = ' ';
+	} else {
+		write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION slapped the hell outta %s\001\r\n", packet->channel, pos);					
 	}
 }
 

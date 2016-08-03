@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
 
 	const char* admin = "oaktree";
 	char* echoing = NULL;
-	int restart = 1;
+	int restart = 1, iplookupset = 0;
 
 	while(restart) {
 		
@@ -100,13 +100,13 @@ int main(int argc, char** argv) {
 
 						write_to_socket(session, out, "\rPRIVMSG %s :https://0x00sec.org/t/%d\r\n", packet->channel, atoi(strstr(packet->content, "@topic ") + 7));
 
-					} else if ( strstr(packet->content, "@iplookup ") ) {
+					} else if ( strstr(packet->content, "@iplookup ") && iplookupset) {
 						
 						char* pos = strstr(packet->content, "@iplookup ") + 10;
-						pos = strtok(pos, " /;");
+						pos = strtok(pos, " /;,&|~!?\?+=#@%%\\$>^*()[]{}_<\"\'\r\b`");
 						printf("[*] host = %s.\n", pos);
 
-						ip_lookup(pos, out, session);
+						if (pos != NULL) ip_lookup(pos, out, session);
 
 					} else if ( strstr(packet->content, "@help") ) {
 
@@ -147,6 +147,16 @@ int main(int argc, char** argv) {
 							write_to_socket(session, out, "\rPRIVMSG %s :\"\033[0;31m%s\033[0;39m\" -- %s\r\n", packet->channel, strstr(packet->content, "@repeat ") + 8, packet->sender);
 						}
 
+					} else if (strstr(packet->content, "@iplookupset ") ) {
+
+						char *setting = strstr(packet->content, "@iplookupset ") + 13;
+						if (*setting == '1' && !strcmp(packet->sender, admin) ) {
+							iplookupset = 1;
+						} else {
+							iplookupset = 0;
+						}
+						
+						write_to_socket(session, out, "\rPRIVMSG %s :iplookupset = %d\r\n", packet->channel, iplookupset);					
 					}
 
 					if (echoing != NULL && !strcmp(packet->sender, echoing)) {
@@ -163,7 +173,7 @@ int main(int argc, char** argv) {
 						write_to_socket(session, out, "\rPRIVMSG %s :Hi there, %s!\r\n", packet->channel, packet->sender);
 
 						char* host;
-						if ((host = parse_for_host(packet)) != NULL) {
+						if ((host = parse_for_host(packet)) != NULL && iplookupset) {
 							printf("[*] host = %s\n", host);
 							ip_lookup(host, out, session);
 						}

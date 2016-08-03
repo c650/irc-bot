@@ -8,6 +8,11 @@ require 'open-uri'
 
 puts "Looking up #{ARGV[0]}"
 
+if ARGV[0].length < 3
+	puts "invalid."
+	exit(1)
+end
+
 agent = Mechanize.new
 agent.user_agent = "curl/7.43.0"
 
