@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
 
 	const char* admin = "oaktree";
 	char* echoing = NULL;
-	int restart = 1, iplookupset = 0;
+	int restart = 1, iplookupset = 0, sleeping = 0;
 
 	while(restart) {
 		
@@ -79,6 +79,28 @@ int main(int argc, char** argv) {
 				}
 
 				if (packet->content != NULL && !strcmp(packet->type, "PRIVMSG")) {
+
+					if (strlen(packet->content) < strlen(session->nick) || strncmp(packet->content, session->nick, strlen(session->nick))) {
+						continue;
+					}
+
+					if ( strstr(packet->content, "@wakeup")) {
+						sleeping = 0;
+						
+						write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION yawned!\001\r\n", packet->channel);
+						
+						sleep(0.7);
+
+						write_to_socket(session, out, "\rPRIVMSG %s :What'd I miss?\r\n", packet->channel);					
+					} else if ( strstr(packet->content, "@sleep") && !strcmp(admin, packet->sender)) {
+
+						sleeping = 1;
+
+						write_to_socket(session, out, "\rPRIVMSG %s :I'm tired. KTHXBAI\r\n", packet->channel);
+
+					}
+
+					if (sleeping) continue;
 					
 					if ( strstr(packet->content, "@slap ") ) {
 
@@ -110,7 +132,8 @@ int main(int argc, char** argv) {
 
 					} else if ( strstr(packet->content, "@help") ) {
 
-						write_to_socket(session, out, "\rPRIVMSG %s :%s: slap, google, search, urban, topic, iplookup, help, echo [0,1], repeat\r\n", packet->channel, packet->sender);
+						write_to_socket(session, out, "\rPRIVMSG %s :slap, google, search, urban, topic, iplookup, help, echo [0,1], repeat, wakeup\r\n", packet->sender);
+						write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION Just PM'd %s the HELP menu.\001\r\n", packet->channel, packet->sender);
 					
 					} else if (strstr(packet->content, "@quit") && !strcmp(packet->sender, admin)) {
 					
@@ -131,7 +154,7 @@ int main(int argc, char** argv) {
 					} else if ( strstr(packet->content, "@echo ") ) {
 
 						echo_config(session, packet, out, &echoing);
-						printf("[*] echoing = %s\n", echoing);
+						printf("[*] echoing = %s\n", echoing ? echoing : "nobody");
 
 					} else if ( strstr(packet->content, "@kick ") ) {
 
