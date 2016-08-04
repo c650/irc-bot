@@ -17,25 +17,25 @@ int parse_irc_packet(char* buf, IRCPacket* packet) {
 	printf("[*] Analyzing %s\n", buf);
 
 	packet->sender = strtok(buf, "!")+1; // gets user between : and !
-	printf("|\t| packet->sender = %s\n", packet->sender);
+	printf("[+] packet->sender = %s\n", packet->sender);
 
 	packet->realname = strtok(NULL, "@")+1; // skip over ~
-	printf("|\t| packet->realname = %s\n", packet->realname);
+	printf("[+] packet->realname = %s\n", packet->realname);
 
 	packet->hostname = strtok(NULL, " ");
-	printf("|\t| packet->hostname = %s\n", packet->hostname);
+	printf("[+] packet->hostname = %s\n", packet->hostname);
 
 	packet->type = strtok(NULL, " ");
-	printf("|\t| packet->type = %s\n", packet->type);
+	printf("[+] packet->type = %s\n", packet->type);
 
 	packet->channel = strtok(NULL, " ");
-	printf("|\t| packet->channel = %s\n", packet->channel);
+	printf("[+] packet->channel = %s\n", packet->channel);
 
 	packet->content = strtok(NULL, "\0");
-	if (packet->content != NULL)
+	if (packet->content != NULL && !strcmp(packet->type, "PRIVMSG"))
 		packet->content++;
 	
-	printf("|\t| packet->content = %s\n", packet->content);
+	printf("[+] packet->content = %s\n", packet->content);
 
 	return 1;
 
