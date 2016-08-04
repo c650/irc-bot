@@ -84,6 +84,13 @@ int main(int argc, char** argv) {
 				if (packet->content != NULL && !strcmp(packet->type, "PRIVMSG")) {
 
 					/*
+						Must run echo check first.
+					*/
+					if (echoing != NULL && !strcmp(packet->sender, echoing)) {
+						write_to_socket(session, out, "\rPRIVMSG %s :%s\r\n", packet->channel, packet->content);					
+					}
+
+					/*
 						No need for the name prompt (e.g., "pinetree: ") in a PM. Otherwise...
 						Only speak when spoken to, and don't execute commands said by yourself.
 
@@ -285,12 +292,6 @@ int main(int argc, char** argv) {
 
 						if (!was_null)
 							*cutoff = ' ';
-					}
-
-					if (echoing != NULL && !strcmp(packet->sender, echoing)) {
-
-						write_to_socket(session, out, "\rPRIVMSG %s :%s\r\n", packet->channel, packet->content);					
-
 					}
 				}
 
