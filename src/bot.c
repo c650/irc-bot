@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
 					/*
 						Act IF bot was cussed out.
 					*/
-					if (cussed_out || !strcmp(packet->sender, "suser")) {
+					if (cussed_out) {
 						write_to_socket(session, out, "\rPRIVMSG %s :%s you lil' %s!\r\n", packet->channel, packet->sender, swears[rand() % swears_len]);
 						cussed_out = 0;
 					}
