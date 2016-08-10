@@ -172,7 +172,7 @@ int main(int argc, char** argv) {
 							pos = strtok(pos, " /;,&|~!?\?+=#@%%\\$>^*()[]{}_<\"\'\r\b`");
 							printf("[*] host = %s.\n", pos);
 
-							if (pos != NULL) ip_lookup(pos, out, session);
+							if (pos != NULL) ip_lookup(pos, out, session, packet);
 						} else {
 							write_to_socket(session, out, "\rPRIVMSG %s :%s: iplookup is off.\r\n", packet->channel, packet->sender);
 						}
@@ -304,7 +304,7 @@ int main(int argc, char** argv) {
 						char* host;
 						if ((host = parse_for_host(packet)) != NULL && iplookupset) {
 							printf("[*] host = %s\n", host);
-							ip_lookup(host, out, session);
+							ip_lookup(host, out, session, packet);
 						}
 
 					} else {

@@ -48,7 +48,7 @@ char* parse_for_host(IRCPacket* packet) {
 	}
 }
 
-void ip_lookup(char* host, char* out, IRCSession* session) {
+void ip_lookup(char* host, char* out, IRCSession* session, IRCPacket* packet) {
 	char sbuf[256];
 	sprintf(sbuf, "./geoip.rb %s", host);
 
@@ -58,7 +58,7 @@ void ip_lookup(char* host, char* out, IRCSession* session) {
 	while (fgets(sbuf, 256, fp) != NULL) {
 		if (sbuf[0] == 0x00) continue;
 
-		write_to_socket(session, out, "\rPRIVMSG %s :%s", session->channel, sbuf);
+		write_to_socket(session, out, "\rPRIVMSG %s :%s", packet->channel, sbuf);
 	}
 
 	pclose(fp);

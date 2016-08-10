@@ -29,6 +29,9 @@ begin
 
 	if (json["city"] != "")
 		puts "Weather right now: "
+		for i in 1..6
+			weather[i].gsub!(/\e\[(\d+);*(\d*);*(\d*)m/, '')
+		end
 		puts weather[1..6]
 	else 
 		puts "Weather unavailable."
