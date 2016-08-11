@@ -1,0 +1,14 @@
+#! /bin/sh
+
+cd ./src
+
+echo "Gathering Sources"
+
+gcc -o ../bin/bot.o bot.c -Wall -Werror -lcurl
+
+if ["$?" -eq "0"]
+then
+  echo "Done"
+else
+  echo "Something went wrong: $?"
+fi

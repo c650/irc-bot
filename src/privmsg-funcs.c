@@ -1,42 +1,28 @@
-void slap(IRCSession* session, IRCPacket* packet, char* out, const char* admin);
-void google(IRCSession* session, IRCPacket* packet, char* out);
-void search(IRCSession* session, IRCPacket* packet, char* out);
-void echo_config(IRCSession* session, IRCPacket* packet, char* out, char** echoing);
-void kick_user(IRCSession* session, IRCPacket* packet, char* out);
+/*
+	privmsg-funcs.c
+*/
 
-void slap(IRCSession* session, IRCPacket* packet, char* out, const char* admin) {
-
-	char* pos = strstr(packet->content, "@slap ") + 6;
+void slap(IRCSession* session, IRCPacket* packet, char* out, Command* command) {
 
 	int prob = rand() % 10;
 	if (prob < 1) {
 		
-		char *tmp = strchr(pos, ' ');
-		
-		int was_null = 1;
-		if (tmp != NULL) {
-			*tmp = '\0';
-			was_null = 0;
-		}
-		
-		write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION slapped %s so hard he got kicked from the channel!\001\r\n", packet->channel, pos);					
+		write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION slapped %s so hard he got kicked from the channel!\001\r\n", packet->channel, command->arg);					
 
 		sleep(2);
 
-		if (strcmp(admin, pos))
-			write_to_socket(session, out, "\rKICK %s %s\r\n", packet->channel, pos);
+		if ( !arr_find(session->admins, command->arg, &session->num_admins) ) // if slap victim isn't admin.
+			write_to_socket(session, out, "\rKICK %s %s\r\n", packet->channel, command->arg);
 
-		if (!was_null)
-			*tmp = ' ';
 	} else {
-		write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION slapped the hell outta %s\001\r\n", packet->channel, pos);					
+		write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION slapped the hell outta %s\001\r\n", packet->channel, command->arg);					
 	}
 }
 
-void google(IRCSession* session, IRCPacket* packet, char* out) {
+void google(IRCSession* session, IRCPacket* packet, char* out, Command* command) {
 
 	char* google_url = "http://google.com/#q=";
-	char* pos = strstr(packet->content, "@google ") + 8;
+	char* pos = command->arg;
 
 	char* result = malloc(strlen(pos) * 3);
 	memset(result, 0, strlen(pos) * 3);
@@ -51,10 +37,10 @@ void google(IRCSession* session, IRCPacket* packet, char* out) {
 	free(result);
 }
 
-void search(IRCSession* session, IRCPacket* packet, char* out) {
+void search(IRCSession* session, IRCPacket* packet, char* out, Command* command) {
 
 	char* search_url = "https://0x00sec.org/search?q=";
-	char* pos = strstr(packet->content, "@search ") + 8;
+	char* pos = command->arg;
 
 	CURL *curl = curl_easy_init();
 	if (curl) {
@@ -69,13 +55,12 @@ void search(IRCSession* session, IRCPacket* packet, char* out) {
 	}
 }
 
-void urban(IRCSession* session, IRCPacket* packet, char* out) {
+void urban(IRCSession* session, IRCPacket* packet, char* out, Command* command) {
 
 	char* urban_url = "https://www.urbandictionary.com/define.php?term=";
-	char* pos = strstr(packet->content, "@urban ") + 7;
+	char* pos = command->arg;
 
-	char* result = malloc(strlen(pos) * 3);
-	memset(result, 0, strlen(pos) * 3);
+	char* result = calloc(strlen(pos) * 3, sizeof(char));
 
 	if (result == NULL)
 		return;
@@ -87,17 +72,15 @@ void urban(IRCSession* session, IRCPacket* packet, char* out) {
 	free(result);
 }
 
-void echo_config(IRCSession* session, IRCPacket* packet, char* out, char** echoing) {
+void echo_config(IRCSession* session, IRCPacket* packet, char* out, Command* command, char** echoing) {
 
-	char* command = strstr(packet->content, "@echo ") + 6;
-	if (*command == '1') {
+	if (*command->arg == '1') {
 
 		if (*echoing != NULL) {
 			free(*echoing);
 		}
 
-		*echoing = malloc( strlen(packet->sender) + 1 );
-		strcpy(*echoing, packet->sender);
+		*echoing = strdup(command->caller);
 
 		write_to_socket(session, out, "\rPRIVMSG %s :Now echoing: %s\r\n", packet->channel, *echoing);					
 
@@ -108,24 +91,5 @@ void echo_config(IRCSession* session, IRCPacket* packet, char* out, char** echoi
 		write_to_socket(session, out, "\rPRIVMSG %s :No longer echoing: %s\r\n", packet->channel, *echoing);
 
 		free(*echoing);
-		*echoing = NULL;
 	}
-}
-
-void kick_user(IRCSession* session, IRCPacket* packet, char* out) {
-
-	char* pos = strstr(packet->content, "@kick ") + 6;
-		
-	char *tmp = strchr(pos, ' ');
-	
-	int was_null = 1;
-	if (tmp != NULL) {
-		*tmp = '\0';
-		was_null = 0;
-	}
-
-	write_to_socket(session, out, "\rKICK %s %s\r\n", packet->channel, pos);
-
-	if (!was_null)
-		*tmp = ' ';
 }

@@ -1,13 +1,5 @@
 /*
-	Prototypes
-*/
-int connect_to_irc(IRCSession* session);
-void log_on(IRCSession* session);
-void join_channel(IRCSession* session);
-void write_to_socket(IRCSession* session, char* buf, char* fmt, ...);
-
-/*
-	Implementations
+	connect.c
 */
 int connect_to_irc(IRCSession* session) {
 	struct sockaddr_in serv_addr;
@@ -42,7 +34,6 @@ int connect_to_irc(IRCSession* session) {
 		close(session->sockfd);
 		exit(3);
 	}
-
 	return session->sockfd;
 }
 
@@ -57,8 +48,12 @@ void log_on(IRCSession* session) {
 }
 
 void join_channel(IRCSession* session) {
+	if (session->num_channels < 1) {
+		printf("[*] No channel to join.\n");
+		return;
+	}
 
 	char buf[BUFFER_SIZE+1];
 
-	write_to_socket(session, buf, "\rJOIN %s\r\n", session->channel);
+	write_to_socket(session, buf, "\rJOIN %s\r\n", session->channels[ session->num_channels - 1 ] );
 }

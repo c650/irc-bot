@@ -1,3 +1,7 @@
+/*
+	parsers.c
+*/
+
 int parse_irc_packet(char* buf, IRCPacket* packet) {
 
 	if (strstr(buf, "!") == NULL || strstr(buf, "@") == NULL) {
@@ -12,7 +16,9 @@ int parse_irc_packet(char* buf, IRCPacket* packet) {
 
 	packet->sender = strtok(buf, "!")+1; // gets user between : and !
 
-	packet->realname = strtok(NULL, "@")+1; // skip over ~
+	packet->realname = strtok(NULL, "@"); // skip over ~
+	if (packet->realname != NULL && *packet->realname == '~')
+		packet->realname++;
 
 	packet->hostname = strtok(NULL, " ");
 
@@ -22,7 +28,7 @@ int parse_irc_packet(char* buf, IRCPacket* packet) {
 
 	packet->content = strtok(NULL, "\0");
 
-	if ( packet->content != NULL && !strcmp(packet->type, "PRIVMSG") )
+	if ( packet->content != NULL && (!strcmp(packet->type, "PRIVMSG") || !strcmp(packet->type, "NOTICE")))
 		packet->content++;
 
 	if (!strcmp(packet->type, "NICK"))
@@ -37,4 +43,23 @@ int parse_irc_packet(char* buf, IRCPacket* packet) {
 
 	return 1;
 
+}
+
+int parse_for_command(IRCPacket* packet,  Command* command) {
+	char* start = strchr(packet->content, '@');
+	
+	if (start == NULL || start + 1 == NULL) {
+		return 0;
+	}
+	start++;
+
+	command->cmd = strtok(start, " \0");
+	command->arg = strtok(NULL, " \0");
+	command->caller = packet->sender;
+	command->channel = packet->channel;
+
+	printf("[+] command->cmd = %s\n", command->cmd);
+	printf("[+] command->arg = %s\n", command->arg);
+
+	return 1;
 }

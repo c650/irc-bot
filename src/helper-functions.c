@@ -1,3 +1,7 @@
+/*
+	helper-functions.c
+*/
+
 void write_to_socket(IRCSession* session, char* buf, char* fmt, ...) {
 	
 	memset(buf, 0, BUFFER_SIZE);
