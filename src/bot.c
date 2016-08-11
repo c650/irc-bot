@@ -19,9 +19,6 @@
 #include "./parser.c"
 #include "./privmsg-funcs.c"
 
-const static char* swears[] = {"fuck", "cunt", "bitch"};
-const static int swears_len = 3;
-
 int main(int argc, char** argv) {
 
 	if (argc != 5) {
@@ -107,22 +104,6 @@ int main(int argc, char** argv) {
 					*/
 					if (!strcmp(packet->channel, session->nick)) {
 						packet->channel = packet->sender;
-					}
-
-					/*
-						Check if bot was cussed out.
-					*/
-					for (int i = 0; i < swears_len; i++) {
-						if (strstr(packet->content, swears[i])) {
-							cussed_out = 1;
-						}
-					}
-					/*
-						Act IF bot was cussed out.
-					*/
-					if (cussed_out) {
-						write_to_socket(session, out, "\rPRIVMSG %s :%s you lil' %s!\r\n", packet->channel, packet->sender, swears[rand() % swears_len]);
-						cussed_out = 0;
 					}
 
 					admin_is_sender = !strcmp(admin, packet->sender);
