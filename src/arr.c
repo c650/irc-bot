@@ -44,7 +44,7 @@ void arr_free(char*** arr, size_t *arr_len) {
 	}
 
 	for (int i = 0; i < *arr_len; i++) {
-		free(*arr[i]);
+		if (*arr[i]) free(*arr[i]);
 	}
 
 	*arr_len = 0;

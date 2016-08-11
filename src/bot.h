@@ -14,7 +14,7 @@
 #include <stdarg.h>
 #include <curl/curl.h>
 
-#define BUFFER_SIZE 2048
+#define BUFFER_SIZE 86400
 #define IRC_PORT 6667
 
 #include "./irc-datatypes.h"

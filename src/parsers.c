@@ -58,6 +58,10 @@ int parse_for_command(IRCPacket* packet,  Command* command) {
 	command->caller = packet->sender;
 	command->channel = packet->channel;
 
+	for (int i = 0, n = strlen(command->cmd); i < n; i++) {
+		command->cmd[i] = tolower(command->cmd[i]);
+	}
+
 	printf("[+] command->cmd = %s\n", command->cmd);
 	printf("[+] command->arg = %s\n", command->arg);
 

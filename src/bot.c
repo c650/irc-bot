@@ -235,6 +235,31 @@ int main(int argc, char** argv) {
 
 						write_to_socket(session, out, "\rKICK %s %s\r\n", packet->channel, command->arg);
 
+					} else if ( !strcmp(command->cmd, "ignore") && command->arg) {
+
+						if ( arr_find(session->admins, command->arg, &session->num_admins) ) {
+							printf("[*] %s tried to ignore an admin (%s)\n", command->caller, command->arg);
+							continue;
+						}
+
+						printf("[*] Ignore command triggered.\n");
+						arr_push_back(&session->ignoring, command->arg, &session->num_ignoring);
+						printf("[*] Now ignoring %s.\n", command->arg);
+
+					} else if ( !strcmp(command->cmd, "unignore") && command->arg) {
+
+						if ( arr_find(session->ignoring, command->arg, &session->num_ignoring) == NULL) {
+							continue;
+						}
+
+						arr_remove(&session->ignoring, command->arg, &session->num_ignoring);
+						printf("[*] No longer ignoring %s.\n", command->arg);
+
+					} else if ( !strcmp(command->cmd, "addadmin") && command->arg) {
+
+						arr_push_back(&session->admins, command->arg, &session->num_admins);
+						printf("[*] %s is now an admin.\n", command->arg);
+
 					}
 				}
 			}
@@ -259,7 +284,6 @@ int main(int argc, char** argv) {
 				printf("[*] Got kicked from %s\n", packet->channel);
 				sleep(0.4);
 
-				// must swap chan to last TODO
 				char* loc = arr_find(session->channels, packet->channel, &session->num_channels);
 				
 				if (loc == NULL) {
@@ -275,6 +299,28 @@ int main(int argc, char** argv) {
 
 				join_channel(session);
 
+			}
+
+			/*
+				TODO: Be able to update ignore list if user changes nick.
+			*/
+			if ( !strcmp(packet->type, "NICK") ) {
+				char *find_admin, *find_ignore;
+
+				find_admin = arr_find(session->admins, packet->sender, &session->num_admins);
+				find_ignore = arr_find(session->ignoring, packet->sender, &session->num_ignoring);
+
+				if (find_admin) {
+					free(find_admin);
+					find_admin = strdup(packet->channel);
+				}
+
+				if (find_ignore) {
+					free(find_ignore);
+					find_ignore = strdup(packet->channel);
+				}
+
+				printf("[*] %s changed his nick to %s. Updating admin/ignore lists if needed...\n", packet->sender, packet->channel);
 			}
 
 			memset(buf, 0, BUFFER_SIZE);
