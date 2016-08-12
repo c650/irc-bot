@@ -7,15 +7,15 @@ void slap(IRCSession* session, IRCPacket* packet, char* out, Command* command) {
 	int prob = rand() % 10;
 	if (prob < 1) {
 		
-		write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION slapped %s so hard he got kicked from the channel!\001\r\n", packet->channel, command->arg);					
+		write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION slapped %s so hard he got kicked from the channel!\001\r\n", packet->channel, command->arg_first);					
 
 		sleep(2);
 
-		if ( !arr_find(session->admins, command->arg, &session->num_admins) ) // if slap victim isn't admin.
-			write_to_socket(session, out, "\rKICK %s %s\r\n", packet->channel, command->arg);
+		if ( !arr_find(session->admins, command->arg_first, &session->num_admins) ) // if slap victim isn't admin.
+			write_to_socket(session, out, "\rKICK %s %s\r\n", packet->channel, command->arg_first);
 
 	} else {
-		write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION slapped the hell outta %s\001\r\n", packet->channel, command->arg);					
+		write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION slapped the hell outta %s\001\r\n", packet->channel, command->arg_first);					
 	}
 }
 
@@ -74,7 +74,7 @@ void urban(IRCSession* session, IRCPacket* packet, char* out, Command* command) 
 
 void echo_config(IRCSession* session, IRCPacket* packet, char* out, Command* command, char** echoing) {
 
-	if (*command->arg == '1') {
+	if (*command->arg_first == '1') {
 
 		if (*echoing != NULL) {
 			free(*echoing);

@@ -42,6 +42,7 @@ typedef struct IRCPacket {
 typedef struct Command {
 	char	*cmd,
 			*arg,
+			*arg_first,
 			*caller,
 			*channel;
 } Command;

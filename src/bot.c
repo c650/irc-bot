@@ -125,7 +125,7 @@ int main(int argc, char** argv) {
 
 				if (sleeping) continue;
 				
-				if ( !strcmp(command->cmd, "slap") && command->arg) {
+				if ( !strcmp(command->cmd, "slap") && command->arg_first) {
 
 					slap(session, packet, out, command);
 				
@@ -141,11 +141,11 @@ int main(int argc, char** argv) {
 
 					urban(session, packet, out, command);
 
-				} else if ( !strcmp(command->cmd, "topic") && command->arg) {
+				} else if ( !strcmp(command->cmd, "topic") && command->arg_first) {
 
 					write_to_socket(session, out, "\rPRIVMSG %s :https://0x00sec.org/t/%d\r\n", packet->channel, atoi(command->arg ? command->arg : "0"));
 
-				} else if ( !strcmp(command->cmd, "iplookup") && command->arg) {
+				} else if ( !strcmp(command->cmd, "iplookup") && command->arg_first) {
 					
 					if (iplookupset) {
 						char* pos = command->arg;
@@ -162,7 +162,7 @@ int main(int argc, char** argv) {
 					write_to_socket(session, out, "\rPRIVMSG %s :slap, google, search, urban, topic, iplookup, help, echo [0,1], repeat, wakeup\r\n", packet->sender);
 					write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION Just PM'd %s the HELP menu.\001\r\n", packet->channel, packet->sender);
 				
-				} else if ( !strcmp(command->cmd, "echo") && command->arg) {
+				} else if ( !strcmp(command->cmd, "echo") && command->arg_first) {
 
 					echo_config(session, packet, out, command, &echoing);
 					printf("[*] echoing = %s\n", echoing ? echoing : "nobody");
@@ -178,10 +178,9 @@ int main(int argc, char** argv) {
 
 				if (admin_is_sender) {
 
-					if (!strcmp(command->cmd, "iplookupset") && command->arg) {
+					if (!strcmp(command->cmd, "iplookupset") && command->arg_first) {
 
-						char *setting = command->arg;
-						if (*setting == '1') {
+						if (*(command->arg_first) == '1') {
 							iplookupset = 1;
 						} else {
 							iplookupset = 0;
@@ -189,30 +188,30 @@ int main(int argc, char** argv) {
 						
 						write_to_socket(session, out, "\rPRIVMSG %s :iplookupset = %d\r\n", packet->channel, iplookupset);					
 					
-					} else if (!strcmp(command->cmd, "join") && command->arg) {
+					} else if (!strcmp(command->cmd, "join") && command->arg_first) {
 						
-						if (arr_find(session->channels, command->arg, &session->num_channels) != NULL)
+						if (arr_find(session->channels, command->arg_first, &session->num_channels) != NULL)
 							continue;
 						
-						arr_push_back(&session->channels, command->arg, &session->num_channels);
+						arr_push_back(&session->channels, command->arg_first, &session->num_channels);
 
 						join_channel(session);
-						printf("[*] Joining %s...\n", command->arg);
+						printf("[*] Joining %s...\n", command->arg_first);
 
-					} else if (!strcmp(command->cmd, "part") && command->arg) {
+					} else if (!strcmp(command->cmd, "part") && command->arg_first) {
 
-						if (arr_find(session->channels, command->arg, &session->num_channels) == NULL)
+						if (arr_find(session->channels, command->arg_first, &session->num_channels) == NULL)
 							continue;
 
-						write_to_socket(session, out, "\rPART %s\r\n", command->arg);
-						printf("[*] Parting from %s...\n", command->arg);
+						write_to_socket(session, out, "\rPART %s\r\n", command->arg_first);
+						printf("[*] Parting from %s...\n", command->arg_first);
 
-						arr_remove(&session->channels, command->arg, &session->num_channels);
+						arr_remove(&session->channels, command->arg_first, &session->num_channels);
 
-					} else if (!strcmp(command->cmd, "nick") && command->arg) {
+					} else if (!strcmp(command->cmd, "nick") && command->arg_first) {
 
 						if (session->nick != NULL) free(session->nick);
-						session->nick = strdup(command->arg);
+						session->nick = strdup(command->arg_first);
 
 						write_to_socket(session, out, "\rNICK %s\r\n", session->nick);
 						printf("[*] Changing nick to %s...\n", session->nick);
@@ -231,37 +230,39 @@ int main(int argc, char** argv) {
 						restart = 1;
 						break;			
 
-					} else if ( !strcmp(command->cmd, "kick")  && command->arg) {
+					} else if ( !strcmp(command->cmd, "kick")  && command->arg_first) {
 
-						write_to_socket(session, out, "\rKICK %s %s\r\n", packet->channel, command->arg);
+						write_to_socket(session, out, "\rKICK %s %s\r\n", packet->channel, command->arg_first);
 
-					} else if ( !strcmp(command->cmd, "ignore") && command->arg) {
+					} else if ( !strcmp(command->cmd, "ignore") && command->arg_first) {
 
-						if ( arr_find(session->admins, command->arg, &session->num_admins) ) {
-							printf("[*] %s tried to ignore an admin (%s)\n", command->caller, command->arg);
+						if ( arr_find(session->admins, command->arg_first, &session->num_admins) ) {
+							printf("[*] %s tried to ignore an admin (%s)\n", command->caller, command->arg_first);
 							continue;
 						}
 
 						printf("[*] Ignore command triggered.\n");
-						arr_push_back(&session->ignoring, command->arg, &session->num_ignoring);
-						printf("[*] Now ignoring %s.\n", command->arg);
+						arr_push_back(&session->ignoring, command->arg_first, &session->num_ignoring);
+						printf("[*] Now ignoring %s.\n", command->arg_first);
 
-					} else if ( !strcmp(command->cmd, "unignore") && command->arg) {
+					} else if ( !strcmp(command->cmd, "unignore") && command->arg_first) {
 
-						if ( arr_find(session->ignoring, command->arg, &session->num_ignoring) == NULL) {
+						if ( arr_find(session->ignoring, command->arg_first, &session->num_ignoring) == NULL) {
 							continue;
 						}
 
-						arr_remove(&session->ignoring, command->arg, &session->num_ignoring);
-						printf("[*] No longer ignoring %s.\n", command->arg);
+						arr_remove(&session->ignoring, command->arg_first, &session->num_ignoring);
+						printf("[*] No longer ignoring %s.\n", command->arg_first);
 
-					} else if ( !strcmp(command->cmd, "addadmin") && command->arg) {
+					} else if ( !strcmp(command->cmd, "addadmin") && command->arg_first) {
 
-						arr_push_back(&session->admins, command->arg, &session->num_admins);
-						printf("[*] %s is now an admin.\n", command->arg);
+						arr_push_back(&session->admins, command->arg_first, &session->num_admins);
+						printf("[*] %s is now an admin.\n", command->arg_first);
 
 					}
 				}
+
+				if (command->arg_first) free(command->arg_first);
 			}
 
 			if (!strcmp(packet->type, "JOIN")) {

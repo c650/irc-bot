@@ -54,7 +54,13 @@ int parse_for_command(IRCPacket* packet,  Command* command) {
 	start++;
 
 	command->cmd = strtok(start, " \0");
-	command->arg = strtok(NULL, " \0");
+	command->arg = strtok(NULL, "\0");
+
+	command->arg_first = strdup(command->arg);
+	char* s = strchr(command->arg_first, ' ');
+	if (s) *s = 0x00;
+	command->arg_first = realloc(command->arg_first, strlen(command->arg_first) * sizeof(char));
+
 	command->caller = packet->sender;
 	command->channel = packet->channel;
 
