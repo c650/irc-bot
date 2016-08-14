@@ -67,3 +67,10 @@ void ip_lookup(char* host, char* out, IRCSession* session, IRCPacket* packet) {
 
 	pclose(fp);
 }
+
+void send_args(char** argv, const size_t *argc, IRCSession* session, char* buf) {
+	for (int i = 0; i < *argc-1; i++) {
+		write_to_socket(session, buf, "%s ", argv[i]);
+	}
+	write_to_socket(session, buf, "%s", argv[*argc - 1]);
+}

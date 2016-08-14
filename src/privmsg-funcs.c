@@ -7,74 +7,63 @@ void slap(IRCSession* session, IRCPacket* packet, char* out, Command* command) {
 	int prob = rand() % 10;
 	if (prob < 1) {
 		
-		write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION slapped %s so hard he got kicked from the channel!\001\r\n", packet->channel, command->arg_first);					
+		write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION slapped %s so hard he got kicked from the channel!\001\r\n", packet->channel, command->argv[0]);					
 
 		sleep(2);
 
-		if ( !arr_find(session->admins, command->arg_first, &session->num_admins) ) // if slap victim isn't admin.
-			write_to_socket(session, out, "\rKICK %s %s\r\n", packet->channel, command->arg_first);
+		if ( !arr_find(session->admins, command->argv[0], &session->num_admins) ) // if slap victim isn't admin.
+			write_to_socket(session, out, "\rKICK %s %s\r\n", packet->channel, command->argv[0]);
 
 	} else {
-		write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION slapped the hell outta %s\001\r\n", packet->channel, command->arg_first);					
+		write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION slapped the hell outta %s\001\r\n", packet->channel, command->argv[0]);					
 	}
 }
 
-void google(IRCSession* session, IRCPacket* packet, char* out, Command* command) {
+void query(IRCSession* session, IRCPacket* packet, char* out, Command* command, const char* main_url) {
 
-	char* google_url = "http://google.com/#q=";
-	char* pos = command->arg;
+	char* concatted = concat_arr(command->argv, &command->argc);
+	
+	if (!concatted) return;
 
-	char* result = malloc(strlen(pos) * 3);
-	memset(result, 0, strlen(pos) * 3);
-
-	if (result == NULL)
+	char* result = calloc(strlen(concatted) * 3, sizeof(char));
+	if (!result) {
+		free(concatted);
 		return;
+	}
 
-	format_query(pos, result);
+	format_query(concatted, result);
 
-	write_to_socket(session, out, "\rPRIVMSG %s :%s%s\r\n", packet->channel, google_url, result);
+	write_to_socket(session, out, "\rPRIVMSG %s :%s%s\r\n", packet->channel, main_url, result);
+
+	free(concatted);
 
 	free(result);
 }
 
 void search(IRCSession* session, IRCPacket* packet, char* out, Command* command) {
 
+	/*
+		Must fix this function, adapt to argc/argv
+	*/
 	char* search_url = "https://0x00sec.org/search?q=";
-	char* pos = command->arg;
+	char* concatted = concat_arr(command->argv, &command->argc);
 
 	CURL *curl = curl_easy_init();
 	if (curl) {
-		char* escaped = curl_easy_escape(curl, pos, strlen(pos));
+		char* escaped = curl_easy_escape(curl, concatted, strlen(concatted));
 		curl_easy_cleanup(curl);
 
 		write_to_socket(session, out, "\rPRIVMSG %s :%s%s\r\n", packet->channel, search_url, escaped);
 
 		curl_free(escaped);
-	} else {
-		return;
 	}
-}
 
-void urban(IRCSession* session, IRCPacket* packet, char* out, Command* command) {
-
-	char* urban_url = "https://www.urbandictionary.com/define.php?term=";
-	char* pos = command->arg;
-
-	char* result = calloc(strlen(pos) * 3, sizeof(char));
-
-	if (result == NULL)
-		return;
-
-	format_query(pos, result);
-
-	write_to_socket(session, out, "\rPRIVMSG %s :%s%s\r\n", packet->channel, urban_url, result);
-
-	free(result);
+	free(concatted);
 }
 
 void echo_config(IRCSession* session, IRCPacket* packet, char* out, Command* command, char** echoing) {
 
-	if (*command->arg_first == '1') {
+	if (*command->argv[0] == '1') {
 
 		if (*echoing != NULL) {
 			free(*echoing);

@@ -14,13 +14,9 @@ void arr_push_back(char*** arr, const char* s, size_t *arr_len) {
 		return;
 	}
 
-	printf("*arr = %p\n", *arr);
 	*arr = realloc( *arr, (*arr_len + 1) * sizeof(char*) );
-	printf("*arr = %p\n", *arr);
 	
 	(*arr)[(*arr_len)++] = strdup(s);
-	printf("*arr[%i] = %s\n", (int)*arr_len-1, (*arr)[(*arr_len)-1]);
-
 }
 
 char* arr_find(char** arr, char* q, size_t *arr_len) {
@@ -37,19 +33,22 @@ char* arr_find(char** arr, char* q, size_t *arr_len) {
 	return NULL;
 }
 
-void arr_free(char*** arr, size_t *arr_len) {
-	
-	if (*arr == NULL) {
+void arr_free(char** arr, size_t *arr_len) {
+
+	if (arr == NULL) {
 		return;
 	}
 
-	for (int i = 0; i < *arr_len; i++) {
-		if (*arr[i]) free(*arr[i]);
+	for (size_t i = 0; i < *arr_len; i++) {
+		printf("Deleting arr[%i] at %p, value %s\n", (int)i, arr[i], arr[i]);
+		if (arr[i] != NULL) {
+			free(arr[i]);
+		}
 	}
 
 	*arr_len = 0;
-	
-	free(*arr);
+
+	free(arr);
 }
 
 void arr_remove(char*** arr, char* s, size_t *arr_len) {
@@ -76,4 +75,33 @@ void arr_remove(char*** arr, char* s, size_t *arr_len) {
 	(*arr_len)--;
 
 	*arr = realloc(*arr, *arr_len);
+}
+
+char* concat_arr(char** arr, const size_t *arr_len) {
+	size_t tot_len = 0;
+	int i;
+
+	for (i = 0; i < *arr_len; i++)
+		tot_len += strlen(arr[i]);
+
+	tot_len += *arr_len - 1; // alloc for spaces.
+
+	char* concatted = malloc(sizeof(char) * tot_len);
+	if (!concatted) {
+		printf("[*] Failed to allocate.\n");
+		return NULL;
+	}
+
+	concatted[0] = 0x00;
+
+	for (i = 0; i < *arr_len; i++) {
+		strcpy(concatted+strlen(concatted), arr[i]);
+		
+		if (i + 1 != *arr_len)
+			strcpy(concatted+strlen(concatted), " ");
+
+		//printf("concatted currently = %s\n", concatted);
+	}
+
+	return concatted;
 }

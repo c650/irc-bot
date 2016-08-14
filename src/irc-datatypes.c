@@ -35,15 +35,18 @@ void free_session(IRCSession* session) {
 	free(session->pass);
 
 	if (session->channels != NULL) {
-		arr_free(&session->channels, &session->num_channels);
+		arr_free(session->channels, &session->num_channels);
+		session->channels = NULL;
 	}
 
 	if (session->ignoring != NULL) {
-		arr_free(&session->ignoring, &session->num_ignoring);
+		arr_free(session->ignoring, &session->num_ignoring);
+		session->ignoring = NULL;
 	}
 
 	if (session->admins != NULL) {
-		arr_free(&session->admins, &session->num_admins);
+		arr_free(session->admins, &session->num_admins);
+		session->admins = NULL;
 	}
 
 	free(session);

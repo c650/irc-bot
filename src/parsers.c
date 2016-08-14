@@ -54,22 +54,25 @@ int parse_for_command(IRCPacket* packet,  Command* command) {
 	start++;
 
 	command->cmd = strtok(start, " \0");
-	command->arg = strtok(NULL, "\0");
-
-	command->arg_first = strdup(command->arg);
-	char* s = strchr(command->arg_first, ' ');
-	if (s) *s = 0x00;
-	command->arg_first = realloc(command->arg_first, strlen(command->arg_first) * sizeof(char));
-
-	command->caller = packet->sender;
-	command->channel = packet->channel;
+	
+	/*
+		Parse and count arguments
+	*/
+	command->argc = 0;
+	char *tmp;
+	while ( (tmp = strtok(NULL, " \0")) != NULL) {
+		arr_push_back(&command->argv, tmp, &command->argc);
+	}
 
 	for (int i = 0, n = strlen(command->cmd); i < n; i++) {
 		command->cmd[i] = tolower(command->cmd[i]);
 	}
 
 	printf("[+] command->cmd = %s\n", command->cmd);
-	printf("[+] command->arg = %s\n", command->arg);
+	printf("[+] command->argv = [");
+	for (int i = 0; i < command->argc; i++)
+		printf(" %s ", command->argv[i]);
+	printf("]\n");
 
 	return 1;
 }
