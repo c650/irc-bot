@@ -1,3 +1,11 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+#include "./irc-datatypes.h"
+#include "./parsers.h"
+#include "./arr.h"
 /*
 	parsers.c
 */

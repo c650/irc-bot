@@ -1,3 +1,15 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <curl/curl.h>
+#include <stdarg.h>
+#include <unistd.h>
+
+#include "./helper-functions.h"
+#include "./irc-datatypes.h"
+#include "./arr.h"
+#include "./bot.h"
 /*
 	helper-functions.c
 */

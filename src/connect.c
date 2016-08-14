@@ -1,3 +1,18 @@
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdarg.h>
+
+#include "./connect.h"
+#include "./irc-datatypes.h"
+#include "./bot.h"
+
 /*
 	connect.c
 */

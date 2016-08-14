@@ -3,7 +3,21 @@
 	the MAIN file.
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdarg.h>
+#include <time.h>
+
 #include "./bot.h"
+#include "./irc-datatypes.h"
+#include "./helper-functions.h"
+#include "./arr.h"
+#include "./connect.h"
+#include "./parsers.h"
+#include "./privmsg-funcs.h"
 
 int main(int argc, char** argv) {
 
@@ -115,12 +129,6 @@ int main(int argc, char** argv) {
 					sleep(0.7);
 
 					write_to_socket(session, out, "\rPRIVMSG %s :What'd I miss?\r\n", packet->channel);					
-				} else if ( !strcmp(command->cmd, "sleep") && admin_is_sender) {
-
-					sleeping = 1;
-
-					write_to_socket(session, out, "\rPRIVMSG %s :I'm tired. KTHXBAI\r\n", packet->channel);
-
 				}
 
 				if (sleeping) continue;
@@ -266,6 +274,12 @@ int main(int argc, char** argv) {
 
 						arr_push_back(&session->admins, command->argv[0], &session->num_admins);
 						printf("[*] %s is now an admin.\n", command->argv[0]);
+
+					} else if ( !strcmp(command->cmd, "sleep") ) {
+
+						sleeping = 1;
+
+						write_to_socket(session, out, "\rPRIVMSG %s :I'm tired. KTHXBAI\r\n", packet->channel);
 
 					}
 				}

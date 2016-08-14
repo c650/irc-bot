@@ -1,3 +1,9 @@
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "./irc-datatypes.h"
+#include "./arr.h"
 /*
 	irc-datatypes.c
 */

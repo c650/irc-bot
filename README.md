@@ -3,7 +3,9 @@ A simple, not-yet-complete IRC bot written in C.
 
 Compile with:
 
-    gcc -o bot bot.c -lcurl
+    make
+
+Note that you must have libcurl-dev installed.
 
 See Commands.md for commands.
 

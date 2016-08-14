@@ -1,32 +1,16 @@
+#ifndef BOT_BOT_H
+#define BOT_BOT_H
+
 /*
 	bot.h
 */
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdarg.h>
-#include <curl/curl.h>
+#ifndef BUFFER_SIZE
+	#define BUFFER_SIZE 86400
+#endif
 
-#define BUFFER_SIZE 86400
-#define IRC_PORT 6667
+#ifndef IRC_PORT
+	#define IRC_PORT 6667
+#endif
 
-#include "./irc-datatypes.h"
-#include "./helper-functions.h"
-#include "./arr.h"
-#include "./connect.h"
-#include "./parsers.h"
-#include "./privmsg-funcs.h"
-
-#include "./irc-datatypes.c"
-#include "./helper-functions.c"
-#include "./arr.c"
-#include "./connect.c"
-#include "./parsers.c"
-#include "./privmsg-funcs.c"
+#endif

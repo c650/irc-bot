@@ -1,3 +1,13 @@
+#include <string.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <curl/curl.h>
+
+#include "./privmsg-funcs.h"
+#include "./helper-functions.h"
+#include "./irc-datatypes.h"
+#include "./arr.h"
 /*
 	privmsg-funcs.c
 */

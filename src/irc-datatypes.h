@@ -1,3 +1,5 @@
+#ifndef BOT_IRC_DT_H
+#define BOT_IRC_DT_H
 /*
 	irc-datatypes.h
 */
@@ -46,3 +48,8 @@ typedef struct Command {
 			*channel;
 	size_t argc;
 } Command;
+
+void init_session(IRCSession* session, char *server, char *nick, char *pass, int port, char* first_admin);
+void free_session(IRCSession* session);
+
+#endif

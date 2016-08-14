@@ -1,3 +1,7 @@
+#ifndef BOT_HELPER_H
+#define BOT_HELPER_H
+
+#include "./irc-datatypes.h"
 /*
 	helper-functions.h
 */
@@ -11,3 +15,5 @@ char* parse_for_host(IRCPacket* packet);
 void ip_lookup(char* host, char* out, IRCSession* session, IRCPacket* packet);
 
 void send_args(char** argv, const size_t *argc, IRCSession* session, char* buf);
+
+#endif
