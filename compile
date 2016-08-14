@@ -1,7 +1,0 @@
-#! /bin/sh
-
-cd ./src
-
-echo "Gathering Sources"
-
-gcc -o ../bin/bot.o bot.c -Wall -Werror -lcurl
