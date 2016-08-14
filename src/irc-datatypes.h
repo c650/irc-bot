@@ -49,7 +49,19 @@ typedef struct Command {
 	size_t argc;
 } Command;
 
+#ifdef __cplusplus
+
+extern "C" {
+
+#endif
+
 void init_session(IRCSession* session, char *server, char *nick, char *pass, int port, char* first_admin);
 void free_session(IRCSession* session);
+
+#ifdef __cplusplus
+}
+#endif
+
+
 
 #endif
