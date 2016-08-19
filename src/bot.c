@@ -257,6 +257,11 @@ int main(int argc, char** argv) {
 							continue;
 						}
 
+						if ( arr_find(session->ignoring, command->argv[0], &session->num_ignoring) ) {
+							printf("[*] %s is already being ignored.\n", command->argv[0]);
+							continue;
+						}
+
 						printf("[*] Ignore command triggered.\n");
 						arr_push_back(&session->ignoring, command->argv[0], &session->num_ignoring);
 						printf("[*] Now ignoring %s.\n", command->argv[0]);
@@ -272,6 +277,11 @@ int main(int argc, char** argv) {
 
 					} else if ( !strcmp(command->cmd, "addadmin") && command->argc >= 1) {
 
+						if ( arr_find(session->admins, command->argv[0], &session->num_admins)  ) {
+							printf("[*] %s is already an admin.\n", command->argv[0]);
+							continue;
+						}
+
 						arr_push_back(&session->admins, command->argv[0], &session->num_admins);
 						printf("[*] %s is now an admin.\n", command->argv[0]);
 
@@ -284,8 +294,7 @@ int main(int argc, char** argv) {
 					}
 				}
 				
-				arr_free(command->argv, &command->argc);
-				command->argv = NULL;
+				arr_free(&command->argv, &command->argc);
 			}
 
 			if (!strcmp(packet->type, "JOIN")) {

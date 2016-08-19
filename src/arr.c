@@ -14,7 +14,7 @@ void arr_push_back(char*** arr, const char* s, size_t *arr_len) {
 		
 		*arr = malloc(sizeof(char*));
 		
-		*arr[0] = strdup(s);
+		(*arr)[0] = strdup(s);
 		*arr_len = 1;
 
 		return;
@@ -39,22 +39,26 @@ char* arr_find(char** arr, char* q, size_t *arr_len) {
 	return NULL;
 }
 
-void arr_free(char** arr, size_t *arr_len) {
+void arr_free(char*** arr, size_t *arr_len) {
 
-	if (arr == NULL) {
+	if (*arr == NULL) {
 		return;
 	}
 
-	for (size_t i = 0; i < *arr_len; i++) {
-		printf("Deleting arr[%i] at %p, value %s\n", (int)i, arr[i], arr[i]);
-		if (arr[i] != NULL) {
-			free(arr[i]);
+	for (size_t i = 0; i < (*arr_len); i++) {
+
+		printf("Deleting arr[%i] at %p, value %s\n", (int)i, (*arr)[i], (*arr)[i]);
+		
+		if ( (*arr)[i] != NULL) {
+			free( (*arr)[i] );
 		}
 	}
 
 	*arr_len = 0;
 
-	free(arr);
+	free( (*arr) );
+	*arr = NULL;
+
 }
 
 void arr_remove(char*** arr, char* s, size_t *arr_len) {
