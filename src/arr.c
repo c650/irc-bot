@@ -20,7 +20,15 @@ void arr_push_back(char*** arr, const char* s, size_t *arr_len) {
 		return;
 	}
 
-	*arr = realloc( *arr, (*arr_len + 1) * sizeof(char*) );
+	/*
+		Let's ensure that we get more memory!
+	*/
+	char** tmp;
+	if ( (tmp = realloc( *arr, (*arr_len + 1) * sizeof(char*) )) == NULL) {
+		perror("arr_push_back couldnt get more memory.");
+	}
+
+	*arr = tmp;
 	
 	(*arr)[(*arr_len)++] = strdup(s);
 }
@@ -82,9 +90,15 @@ void arr_remove(char*** arr, char* s, size_t *arr_len) {
 
 	}
 
-	(*arr_len)--;
+	/*
+		Let's make sure we can shrink the array.
+	*/
+	char **tmp;
+	if ( ( tmp = realloc( *arr, --(*arr_len) ) ) == NULL) {
+		perror("arr_remove couldn't shrink the array.");
+	} 
 
-	*arr = realloc(*arr, *arr_len);
+	*arr = tmp;
 }
 
 char* concat_arr(char** arr, const size_t *arr_len) {
