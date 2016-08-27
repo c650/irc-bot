@@ -167,8 +167,9 @@ int main(int argc, char** argv) {
 
 				} else if ( !strcmp(command->cmd, "help") ) {
 
-					write_to_socket(session, out, "\rPRIVMSG %s :slap, google, search, urban, topic, iplookup, help, echo [0,1], repeat, wakeup\r\n", packet->sender);
-					write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION Just PM'd %s the HELP menu.\001\r\n", packet->channel, packet->sender);
+					write_to_socket(session, out, "\rPRIVMSG %s :slap, google, search, urban, topic, iplookup, 1337, help, echo [0,1], repeat, wakeup\r\n", packet->sender);
+					if ( strcmp(command->caller, packet->channel) )
+						write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION Just PM'd %s the HELP menu.\001\r\n", packet->channel, packet->sender);
 				
 				} else if ( !strcmp(command->cmd, "echo") && command->argc >= 1) {
 
@@ -207,7 +208,7 @@ int main(int argc, char** argv) {
 								str[i] = '7';
 								break;
 							case 'o':
-								str[i] = 'o';
+								str[i] = '0';
 								break;
 						}
 					}
