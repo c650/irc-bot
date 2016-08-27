@@ -72,23 +72,26 @@ void search(IRCSession* session, IRCPacket* packet, char* out, Command* command)
 }
 
 void echo_config(IRCSession* session, IRCPacket* packet, char* out, Command* command, char** echoing) {
-
-	if (*command->argv[0] == '1') {
+	printf("[0] gets here!!\n");
+	if (command->argv[0][0] == '1') {
 
 		if (*echoing != NULL) {
 			free(*echoing);
 		}
 
-		*echoing = strdup(command->caller);
+		(*echoing) = strdup(packet->sender);
+		printf("and here??\n");
 
 		write_to_socket(session, out, "\rPRIVMSG %s :Now echoing: %s\r\n", packet->channel, *echoing);					
-
-		return;
 
 	} else {
 
 		write_to_socket(session, out, "\rPRIVMSG %s :No longer echoing: %s\r\n", packet->channel, *echoing);
 
-		free(*echoing);
+		if (*echoing != NULL) {
+			free(*echoing);
+			*echoing = NULL;
+		}
 	}
+	printf("[*] gets here!!\n");
 }
