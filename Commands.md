@@ -21,3 +21,5 @@ The bot's nick has to be the first part of `packet->content` for the bot to reac
 | `join` | joins another channel |
 | `part` | leaves specified channel |
 | `nick` | globally changes bot's nickname |
+| `1337` | transforms arguments into 1337sp34k
+

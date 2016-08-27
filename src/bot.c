@@ -184,6 +184,37 @@ int main(int argc, char** argv) {
 						write_to_socket(session, out, "\" -- %s\r\n", packet->sender);						
 					}
 
+				} else if ( !strcmp(command->cmd, "1337") && command->argc >= 1) {
+					char *str = concat_arr(command->argv, &command->argc);
+					
+					for (int i = 0, n = strlen(str); i < n; i++) {
+						switch( tolower(str[i]) ) {
+
+							case 'i':
+							case 'l':
+								str[i] = '1';
+								break;
+							case 'e':
+								str[i] = '3';
+								break;
+							case 'a':
+								str[i] = '4';
+								break;
+							case 's':
+								str[i] = '5';
+								break;
+							case 't':
+								str[i] = '7';
+								break;
+							case 'o':
+								str[i] = 'o';
+								break;
+						}
+					}
+
+					write_to_socket(session, out, "\rPRIVMSG %s :%s\r\n", packet->channel, str);
+
+					free(str);
 				}
 
 				if (admin_is_sender) {
