@@ -168,7 +168,7 @@ int main(int argc, char** argv) {
 				} else if ( !strcmp(command->cmd, "help") ) {
 
 					write_to_socket(session, out, "\rPRIVMSG %s :slap, google, search, urban, topic, iplookup, 1337, help, echo [0,1], repeat, wakeup\r\n", packet->sender);
-					if ( strcmp(command->caller, packet->channel) )
+					if ( strcmp(packet->sender, packet->channel) )
 						write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION Just PM'd %s the HELP menu.\001\r\n", packet->channel, packet->sender);
 				
 				} else if ( !strcmp(command->cmd, "echo") && command->argc >= 1) {
@@ -285,7 +285,7 @@ int main(int argc, char** argv) {
 					} else if ( !strcmp(command->cmd, "ignore") && command->argc >= 1) {
 
 						if ( arr_find(session->admins, command->argv[0], &session->num_admins) ) {
-							printf("[*] %s tried to ignore an admin (%s)\n", command->caller, command->argv[0]);
+							printf("[*] %s tried to ignore an admin (%s)\n", packet->sender, command->argv[0]);
 							continue;
 						}
 

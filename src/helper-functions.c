@@ -75,7 +75,7 @@ void ip_lookup(char *host, char *out, IRCSession *session, IRCPacket *packet) {
     if (sbuf[0] == 0x00)
       continue;
 
-    write_to_socket(session, out, "\rPRIVMSG %s :%s", packet->channel, sbuf);
+    write_to_socket(session, out, "\rPRIVMSG %s :%s", packet->sender, sbuf);
   }
 
   pclose(fp);
