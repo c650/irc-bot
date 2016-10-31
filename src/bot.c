@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
 	int restart = 1, iplookupset = 0, sleeping = 0;
 
 	while(restart) {
-		
+
 		restart = 0;
 
 		time_t t;
@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
 
 		IRCPacket *packet = malloc(sizeof(IRCPacket));
 		Command *command = malloc(sizeof(Command));
-		
+
 		int n, admin_is_sender = 0, ignore_sender = 0;
 
 		while( (n = read(session->sockfd, buf, BUFFER_SIZE)) && !restart) {
@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
 			printf("\n%s\n", buf);
 
 			if (!strncmp(buf, "PING", 4)) {
-				
+
 				buf[1] = 'O';
 				write_to_socket(session, out, buf);
 				printf("[*] Pong sent!\n");
@@ -90,7 +90,7 @@ int main(int argc, char** argv) {
 					Must run echo check first.
 				*/
 				if (echoing != NULL && !strcmp(packet->sender, echoing)) {
-					write_to_socket(session, out, "\rPRIVMSG %s :%s\r\n", packet->channel, packet->content);					
+					write_to_socket(session, out, "\rPRIVMSG %s :%s\r\n", packet->channel, packet->content);
 				}
 
 				/*
@@ -123,26 +123,26 @@ int main(int argc, char** argv) {
 
 				if ( !strcmp(command->cmd, "wakeup")) {
 					sleeping = 0;
-					
+
 					write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION yawned!\001\r\n", packet->channel);
-					
+
 					sleep(0.7);
 
-					write_to_socket(session, out, "\rPRIVMSG %s :What'd I miss?\r\n", packet->channel);					
+					write_to_socket(session, out, "\rPRIVMSG %s :What'd I miss?\r\n", packet->channel);
 				}
 
 				if (sleeping) continue;
-				
+
 				if ( !strcmp(command->cmd, "slap") && command->argc >= 1) {
 
 					slap(session, packet, out, command);
-				
+
 				} else if ( !strcmp(command->cmd, "google") && command->argc >= 1) {
-					
+
 					query(session, packet, out, command, "http://google.com/#q=");
 
 				} else if ( !strcmp(command->cmd, "search") && command->argc >= 1) {
-					
+
 					search(session, packet, out, command);
 
 				} else if ( !strcmp(command->cmd, "urban") && command->argc >= 1) {
@@ -154,7 +154,7 @@ int main(int argc, char** argv) {
 					write_to_socket(session, out, "\rPRIVMSG %s :https://0x00sec.org/t/%d\r\n", packet->channel, atoi(command->argv[0]));
 
 				} else if ( !strcmp(command->cmd, "iplookup") && command->argc >= 1) {
-					
+
 					if (iplookupset) {
 						char* pos = command->argv[0];
 						pos = strtok(pos, " /;,&|~!?\?+=#@%%\\$>^*()[]{}_<\"\'\r\b`");
@@ -170,7 +170,7 @@ int main(int argc, char** argv) {
 					write_to_socket(session, out, "\rPRIVMSG %s :slap, google, search, urban, topic, iplookup, 1337, help, echo [0,1], repeat, wakeup\r\n", packet->sender);
 					if ( strcmp(packet->sender, packet->channel) )
 						write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION Just PM'd %s the HELP menu.\001\r\n", packet->channel, packet->sender);
-				
+
 				} else if ( !strcmp(command->cmd, "echo") && command->argc >= 1) {
 
 					echo_config(session, packet, out, command, &echoing);
@@ -182,12 +182,12 @@ int main(int argc, char** argv) {
 					if (strcmp(packet->sender, session->nick)) {
 						write_to_socket(session, out, "\rPRIVMSG %s :\"", packet->channel);
 						send_args(command->argv, &command->argc, session, out);
-						write_to_socket(session, out, "\" -- %s\r\n", packet->sender);						
+						write_to_socket(session, out, "\" -- %s\r\n", packet->sender);
 					}
 
 				} else if ( !strcmp(command->cmd, "1337") && command->argc >= 1) {
 					char *str = concat_arr(command->argv, &command->argc);
-					
+
 					for (int i = 0, n = strlen(str); i < n; i++) {
 						switch( tolower(str[i]) ) {
 
@@ -227,14 +227,14 @@ int main(int argc, char** argv) {
 						} else {
 							iplookupset = 0;
 						}
-						
-						write_to_socket(session, out, "\rPRIVMSG %s :iplookupset = %d\r\n", packet->channel, iplookupset);					
-					
+
+						write_to_socket(session, out, "\rPRIVMSG %s :iplookupset = %d\r\n", packet->channel, iplookupset);
+
 					} else if (!strcmp(command->cmd, "join") && command->argc >= 1) {
-						
+
 						if (arr_find(session->channels, command->argv[0], &session->num_channels) != NULL)
 							continue;
-						
+
 						arr_push_back(&session->channels, command->argv[0], &session->num_channels);
 
 						join_channel(session);
@@ -259,7 +259,7 @@ int main(int argc, char** argv) {
 						printf("[*] Changing nick to %s...\n", session->nick);
 
 					} else if (!strcmp(command->cmd, "quit")) {
-				
+
 						write_to_socket(session, out, "\rQUIT :Quit: ");
 						if (command->argc != 0) {
 							send_args(command->argv, &command->argc, session, out);
@@ -276,7 +276,7 @@ int main(int argc, char** argv) {
 						write_to_socket(session, out, "\rQUIT :Quit: Restarting\r\n");
 
 						restart = 1;
-						break;			
+						break;
 
 					} else if ( !strcmp(command->cmd, "kick")  && command->argc >= 1) {
 
@@ -323,9 +323,21 @@ int main(int argc, char** argv) {
 
 						write_to_socket(session, out, "\rPRIVMSG %s :I'm tired. KTHXBAI\r\n", packet->channel);
 
+					} else if ( !strcmp(command->cmd, "send") && command->argc >= 2) {
+						/* check for channel and check if bot is in channel. */
+						if ( arr_find( session->channels , command->argv[0] , &session->num_channels ) ) {
+
+							size_t tmp_len = command->argc - 1;
+							char **tmp_arr = command->argv + 1;
+							char *msg = concat_arr( tmp_arr, &tmp_len );
+
+							write_to_socket(session, out, "\rPRIVMSG %s :%s\r\n", command->argv[0], msg);
+							free(msg);
+						} else {
+							write_to_socket(session, out, "\rPRIVMSG %s :I am not in the channel %s. Ask me to join?\r\n", packet->sender, command->argv[0]);
+						}
 					}
 				}
-				
 				arr_free(&command->argv, &command->argc);
 			}
 
@@ -350,11 +362,11 @@ int main(int argc, char** argv) {
 				sleep(0.4);
 
 				char* loc = arr_find(session->channels, packet->channel, &session->num_channels);
-				
+
 				if (loc == NULL) {
 					continue;
 				}
-				
+
 				// swap if channel kicked from isn't last channel.
 				if (loc != session->channels[ session->num_channels - 1 ] ) {
 					char* tmp = loc;
@@ -409,7 +421,7 @@ int main(int argc, char** argv) {
 			printf("\n");
 		}
 	}
-	
+
 	free_session(session);
 
 	return 0;
