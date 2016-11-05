@@ -11,9 +11,9 @@
 
 void arr_push_back(char*** arr, const char* s, size_t *arr_len) {
 	if (*arr == NULL) {
-		
+
 		*arr = malloc(sizeof(char*));
-		
+
 		(*arr)[0] = strdup(s);
 		*arr_len = 1;
 
@@ -29,7 +29,7 @@ void arr_push_back(char*** arr, const char* s, size_t *arr_len) {
 	}
 
 	*arr = tmp;
-	
+
 	(*arr)[(*arr_len)++] = strdup(s);
 }
 
@@ -56,7 +56,7 @@ void arr_free(char*** arr, size_t *arr_len) {
 	for (size_t i = 0; i < (*arr_len); i++) {
 
 		printf("Deleting arr[%i] at %p, value %s\n", (int)i, (*arr)[i], (*arr)[i]);
-		
+
 		if ( (*arr)[i] != NULL) {
 			free( (*arr)[i] );
 		}
@@ -96,7 +96,7 @@ void arr_remove(char*** arr, char* s, size_t *arr_len) {
 	char **tmp;
 	if ( ( tmp = realloc( *arr, --(*arr_len) ) ) == NULL) {
 		perror("arr_remove couldn't shrink the array.");
-	} 
+	}
 
 	*arr = tmp;
 }
@@ -120,7 +120,7 @@ char* concat_arr(char** arr, const size_t *arr_len) {
 
 	for (i = 0; i < *arr_len; i++) {
 		strcpy(concatted+strlen(concatted), arr[i]);
-		
+
 		if (i + 1 != *arr_len)
 			strcpy(concatted+strlen(concatted), " ");
 

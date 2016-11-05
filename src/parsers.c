@@ -31,7 +31,7 @@ int parse_irc_packet(char* buf, IRCPacket* packet) {
 	packet->hostname = strtok(NULL, " ");
 
 	packet->type = strtok(NULL, " ");
-	
+
 	packet->channel = strtok(NULL, " ");
 
 	packet->content = strtok(NULL, "\0");
@@ -55,14 +55,14 @@ int parse_irc_packet(char* buf, IRCPacket* packet) {
 
 int parse_for_command(IRCPacket* packet,  Command* command) {
 	char* start = strchr(packet->content, '@');
-	
+
 	if (start == NULL || start + 1 == NULL) {
 		return 0;
 	}
 	start++;
 
 	command->cmd = strtok(start, " \0");
-	
+
 	/*
 		Parse and count arguments
 	*/

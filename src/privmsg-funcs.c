@@ -13,11 +13,13 @@
 */
 
 void slap(IRCSession* session, IRCPacket* packet, char* out, Command* command) {
+	if (command->argc <= 0 || !strcmp(session->nick, command->argv[0]))
+		return;
 
 	int prob = rand() % 10;
 	if (prob < 1) {
-		
-		write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION slapped %s so hard he got kicked from the channel!\001\r\n", packet->channel, command->argv[0]);					
+
+		write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION slapped %s so hard he got kicked from the channel!\001\r\n", packet->channel, command->argv[0]);
 
 		sleep(2);
 
@@ -25,14 +27,14 @@ void slap(IRCSession* session, IRCPacket* packet, char* out, Command* command) {
 			write_to_socket(session, out, "\rKICK %s %s\r\n", packet->channel, command->argv[0]);
 
 	} else {
-		write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION slapped the hell outta %s\001\r\n", packet->channel, command->argv[0]);					
+		write_to_socket(session, out, "\rPRIVMSG %s :\001ACTION slapped the hell outta %s\001\r\n", packet->channel, command->argv[0]);
 	}
 }
 
 void query(IRCSession* session, IRCPacket* packet, char* out, Command* command, const char* main_url) {
 
 	char* concatted = concat_arr(command->argv, &command->argc);
-	
+
 	if (!concatted) return;
 
 	char* result = calloc(strlen(concatted) * 3, sizeof(char));
@@ -82,7 +84,7 @@ void echo_config(IRCSession* session, IRCPacket* packet, char* out, Command* com
 		(*echoing) = strdup(packet->sender);
 		printf("and here??\n");
 
-		write_to_socket(session, out, "\rPRIVMSG %s :Now echoing: %s\r\n", packet->channel, *echoing);					
+		write_to_socket(session, out, "\rPRIVMSG %s :Now echoing: %s\r\n", packet->channel, *echoing);
 
 	} else {
 

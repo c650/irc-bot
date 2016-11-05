@@ -9,7 +9,7 @@
 */
 
 void init_session(IRCSession* session, char *server, char *nick, char *pass, int port, char* first_admin) {
-	
+
 	if (!session) {
 		printf("[*] Error initializing session...\n");
 		exit(5);

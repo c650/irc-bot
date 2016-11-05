@@ -22,4 +22,6 @@ The bot's nick has to be the first part of `packet->content` for the bot to reac
 | `part` | leaves specified channel |
 | `nick` | globally changes bot's nickname |
 | `1337` | transforms arguments into 1337sp34k
+| `ignore`/`unignore` | ignores a person or unignores them
+| `addadmin` | gives privileges to a user |
 

@@ -5,7 +5,7 @@
 */
 
 typedef struct IRCSession {
-	
+
 	char	*server,
 			*nick,
 			*pass;
