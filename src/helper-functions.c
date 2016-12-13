@@ -1,3 +1,6 @@
+/*
+        helper-functions.c
+*/
 #include <ctype.h>
 #include <curl/curl.h>
 #include <stdarg.h>
@@ -6,13 +9,10 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "./arr.h"
-#include "./bot.h"
-#include "./helper-functions.h"
-#include "./irc-datatypes.h"
-/*
-        helper-functions.c
-*/
+#include "./include/arr.h"
+#include "./include/bot.h"
+#include "./include/helper-functions.h"
+#include "./include/irc-datatypes.h"
 
 void write_to_socket(IRCSession *session, char *buf, char *fmt, ...) {
 

@@ -1,16 +1,17 @@
+/*
+	privmsg-funcs.c
+*/
+
 #include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <curl/curl.h>
 
-#include "./privmsg-funcs.h"
-#include "./helper-functions.h"
-#include "./irc-datatypes.h"
-#include "./arr.h"
-/*
-	privmsg-funcs.c
-*/
+#include "./include/privmsg-funcs.h"
+#include "./include/helper-functions.h"
+#include "./include/irc-datatypes.h"
+#include "./include/arr.h"
 
 void slap(IRCSession* session, IRCPacket* packet, char* out, Command* command) {
 	if (command->argc <= 0 || !strcmp(session->nick, command->argv[0]))

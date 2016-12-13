@@ -1,12 +1,13 @@
+/*
+	irc-datatypes.c
+*/
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "./irc-datatypes.h"
-#include "./arr.h"
-/*
-	irc-datatypes.c
-*/
+#include "./include/irc-datatypes.h"
+#include "./include/arr.h"
+
 
 void init_session(IRCSession* session, char *server, char *nick, char *pass, int port, char* first_admin) {
 

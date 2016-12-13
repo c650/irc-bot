@@ -1,13 +1,12 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-
-#include "./arr.h"
-
 /*
 	arr.c
 	char ** functions
 */
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#include "./include/arr.h"
 
 void arr_push_back(char*** arr, const char* s, size_t *arr_len) {
 	if (*arr == NULL) {

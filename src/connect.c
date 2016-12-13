@@ -1,3 +1,6 @@
+/*
+	connect.c
+*/
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -9,13 +12,10 @@
 #include <ctype.h>
 #include <stdarg.h>
 
-#include "./connect.h"
-#include "./irc-datatypes.h"
-#include "./bot.h"
+#include "./include/connect.h"
+#include "./include/irc-datatypes.h"
+#include "./include/bot.h"
 
-/*
-	connect.c
-*/
 int connect_to_irc(IRCSession* session) {
 	struct sockaddr_in serv_addr;
 	struct hostent *server;

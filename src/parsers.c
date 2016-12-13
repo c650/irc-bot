@@ -1,14 +1,15 @@
+/*
+	parsers.c
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
-#include "./irc-datatypes.h"
-#include "./parsers.h"
-#include "./arr.h"
-/*
-	parsers.c
-*/
+#include "./include/irc-datatypes.h"
+#include "./include/parsers.h"
+#include "./include/arr.h"
+
 
 int parse_irc_packet(char* buf, IRCPacket* packet) {
 
